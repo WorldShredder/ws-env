@@ -1,10 +1,10 @@
-<h1 align=center>PERSONAL ENVIRONMENT</h1>
-<h3 align=center>Tmux + Vim</h3>
-<br>
-
 > [!IMPORTANT]
 > - This script is intended for **debian**-based systems.
 > - Some features may be inaccessible outside of a [Qubes](https://qubes-os.org) environment.
+
+<h1 align=center>PERSONAL ENVIRONMENT</h1>
+<h3 align=center>Tmux + Vim</h3>
+<br>
 
 Personal developer envrionment installer.
 

@@ -2,6 +2,9 @@
 
 set -e
 
+trap 'log.error "An error occurred"; save_state; exit 1' ERR
+trap 'log.warn "Exiting early"; save_state; exit 0' INT TERM HUP QUIT
+
 if [ -f ~/.ws-env-state.conf ] ; then
     source ~/.ws-env-state.conf
 else
@@ -37,9 +40,6 @@ save_state() {
     echo "NEXT_STEP=$NEXT_STEP; NEXT_SUB_STEP=$NEXT_SUB_STEP" \
         > ~/.ws-env-state.conf
 }
-
-trap 'log.error "An error occurred"; save_state; exit 1' ERR
-trap 'log.warn "Exiting early"; save_state; exit 0' INT TERM HUP QUIT
 
 
 

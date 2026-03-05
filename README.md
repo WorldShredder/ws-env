@@ -6,7 +6,7 @@
 <h3 align=center>Tmux + Vim</h3>
 <br>
 
-Personal developer envrionment installer.
+Installer for my personal developer environment. The installer will pickup where it left off if failures occur, although this feature is only partially implemented.
 
 ## Usage
 
@@ -33,3 +33,10 @@ git clone --depth 1 https://github.com/worldshredder/ws-env.git && ws-env/src/se
 - [Tmux Installer](https://github.com/worldshredder/tmux-installer)
 - [Go Installer](https://gist.github.com/WorldShredder/726c1add8067556a17a431fdd60517f0)
 - [Tmux Setup Instructions](https://gist.github.com/WorldShredder/8fb23f07bc4348a9740eb4f207b9c06c)
+
+## Todo
+
+- [ ] Implement proper cleanup step in trap
+- [ ] Allow script execution with sudo (requires `sudo -u __USER__` scheme)
+- [ ] Add install steps for NeoVim
+- [ ] Bunch of other stuff...

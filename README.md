@@ -11,7 +11,7 @@ Personal developer envrionment installer.
 ## Usage
 
 ```bash
-git clone --depth 1 https://github.com/worldshredder/ws-env.git && wsenv/src/setup.sh
+git clone --depth 1 https://github.com/worldshredder/ws-env.git && ws-env/src/setup.sh
 ```
 
 ## Tools & Packages

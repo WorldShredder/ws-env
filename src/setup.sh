@@ -2,8 +2,8 @@
 
 set -e
 
-if [ -f ~/.installer-state.conf ] ; then
-    source ~/.installer-state.conf
+if [ -f ~/.ws-env-state.conf ] ; then
+    source ~/.ws-env-state.conf
 else
     NEXT_STEP=1
     NEXT_SUB_STEP=1
@@ -35,7 +35,7 @@ log.error() { log.init "${R}" '✖ ' "${*}${X}"; }
 save_state() {
     trap - ERR INT TERM HUP QUIT
     echo "NEXT_STEP=$NEXT_STEP; NEXT_SUB_STEP=$NEXT_SUB_STEP" \
-        > ~/.installer-state.conf
+        > ~/.ws-env-state.conf
 }
 
 trap 'log.error "An error occurred"; save_state; exit 1' ERR
@@ -247,7 +247,7 @@ if [ "$NEXT_STEP" = '10' ] ; then
     fi
 fi
 
-rm -f ~/.installer-state.conf
+rm -f ~/.ws-env-state.conf
 
 log.ok 'Installation complete! Restart shell to complete setup ;)'
 

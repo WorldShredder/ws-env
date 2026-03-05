@@ -5,6 +5,12 @@ set -e
 trap 'log.error "An error occurred"; save_state; exit 1' ERR
 trap 'log.warn "Exiting early"; save_state; exit 0' INT TERM HUP QUIT
 
+save_state() {
+    trap - ERR INT TERM HUP QUIT
+    echo "NEXT_STEP=$NEXT_STEP; NEXT_SUB_STEP=$NEXT_SUB_STEP" \
+        > ~/.ws-env-state.conf
+}
+
 if [ -f ~/.ws-env-state.conf ] ; then
     source ~/.ws-env-state.conf
 else
@@ -35,11 +41,11 @@ log.ok()    { log.init "${G}" '✔ ' "${*}${X}"; }
 log.warn()  { log.init "${Y}" '✖ ' "${*}${X}"; }
 log.error() { log.init "${R}" '✖ ' "${*}${X}"; }
 
-save_state() {
-    trap - ERR INT TERM HUP QUIT
-    echo "NEXT_STEP=$NEXT_STEP; NEXT_SUB_STEP=$NEXT_SUB_STEP" \
-        > ~/.ws-env-state.conf
-}
+# TODO: Implement 'sudo -u __USER__' scheme to handle sudo call
+if [ "$(id -u)" = '0' ] ; then
+    log.error 'Do not run with root privileges'
+    exit 1
+fi
 
 
 

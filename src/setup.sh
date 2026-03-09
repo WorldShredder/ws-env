@@ -152,15 +152,36 @@ fi
 log.info 'Step 6: Installing FD'
 
 if [ "$NEXT_STEP" = '6' ] ; then
+    __fd_dir='/tmp/user/1000/fd_download'
+    mkdir -p "$__fd_dir"
     if [ "$NEXT_SUB_STEP" = '1' ] ; then
-        log.info2 'Step 6.1: Downloading and installing deb package'
-        sudo dpkg -i "$(curl -w "%{filename_effective}" -LO "$(jq -r '.assets[] | select(.name | test("^fd_.*_amd64\\.deb$")) | .browser_download_url' <(curl -fsL https://api.github.com/repos/sharkdp/fd/releases/latest))")"
+        # log.info2 'Step 6.1: Downloading and installing deb package'
+        # sudo dpkg -i "$(curl -w "%{filename_effective}" -LO "$(jq -r '.assets[] | select(.name | test("^fd_.*_amd64\\.deb$")) | .browser_download_url' <(curl -fsL https://api.github.com/repos/sharkdp/fd/releases/latest))")"
+        log.info2 'Step 6.1: Downloading binary'
+        curl -fL "$(jq -r '.assets[] | select(.name | test("^fd-v.*-x86_64-unknown-linux-gnu\\.tar\\.gz$")) | .browser_download_url' <(curl -fsL https://api.github.com/repos/sharkdp/fd/releases/latest))" | tar -xzC "$__fd_dir"
+        sudo cp "$__fd_dir"/*/fd /usr/local/bin
+        sudo chmod +x /usr/local/bin/fd
         NEXT_SUB_STEP=2
     fi
 
     if [ "$NEXT_SUB_STEP" = '2' ] ; then
-        log.info2 'Step 6.2: Cleaning up'
-        rm fd_*amd64.deb
+        log.info2 'Step 6.2: Configuring shell completion'
+        if [ "${SHELL##*/}" = 'zsh' ] ; then
+            sudo mkdir -p /usr/local/share/zsh/site-functions
+            sudo cp "$__fd_dir"/*/autocomplete/_fd /usr/local/share/zsh/site-functions/_fdfind
+            sudo chmod 644 /usr/local/share/zsh/site-functions/_fdfind
+        elif [ "${SHELL##*/}" = 'bash' ] ; then
+            mkdir -p ~/.local/share/bash-completion/completions
+            cp "$__fd_dir"/*/autocomplete/fd.bash ~/.local/share/bash-completion/completions/fd
+        else
+            :
+        fi
+        NEXT_SUB_STEP=3
+    fi
+
+    if [ "$NEXT_SUB_STEP" = '3' ] ; then
+        log.info2 'Step 6.3: Cleaning up'
+        rm -rf "$__fd_dir"
     fi
 
     NEXT_SUB_STEP=1
@@ -207,12 +228,18 @@ if [ "$NEXT_STEP" = '8' ] ; then
             # Bindings
             curl -fsL https://gist.github.com/WorldShredder/194033baaa80674743f82e09d3eb06a2/raw >> ~/.bashrc
             # Command Completion
-            sesh completion bash > sesh-completion.bash
+            sesh completion bash > _sesh
             mkdir -p ~/.local/share/bash-completion/completions
-            cp sesh-completion.bash ~/.local/share/bash-completion/completions/sesh
+            cp _sesh ~/.local/share/bash-completion/completions/sesh
         else
             true
         fi
+        NEXT_SUB_STEP=3
+    fi
+
+    if [ "$NEXT_SUB_STEP" = '3' ] ; then
+        log.info2 'Step 8.3: Cleaning up'
+        rm -f _sesh
     fi
 
     NEXT_SUB_STEP=1

@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
-set -e
-
-trap 'log.error "An error occurred"; save_state; exit 1' ERR
-trap 'log.warn "Exiting early"; save_state; exit 0' INT TERM HUP QUIT
+set -eo pipefail
 
 save_state() {
     trap - ERR INT TERM HUP QUIT
     echo "NEXT_STEP=$NEXT_STEP; NEXT_SUB_STEP=$NEXT_SUB_STEP" \
         > ~/.ws-env-state.conf
 }
+
+trap 'log.error "An error occurred"; save_state; exit 1' ERR
+trap 'log.warn "Exiting early"; save_state; exit 0' INT TERM HUP QUIT
 
 if [ -f ~/.ws-env-state.conf ] ; then
     source ~/.ws-env-state.conf

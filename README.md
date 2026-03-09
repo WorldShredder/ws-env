@@ -39,4 +39,11 @@ git clone --depth 1 https://github.com/worldshredder/ws-env.git && ws-env/src/se
 - [ ] Implement proper cleanup step in trap
 - [ ] Allow script execution with sudo (requires `sudo -u __USER__` scheme)
 - [ ] Add install steps for NeoVim
+- [ ] Language environments
+    - [ ] Python
+    - [ ] Lua
+    - [ ] PHP
+    - [ ] Javascript/Node
+    - [ ] Rust
+    - [ ] C
 - [ ] Bunch of other stuff...

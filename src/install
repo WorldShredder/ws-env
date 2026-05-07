@@ -1,0 +1,189 @@
+#!/usr/bin/env bash
+
+#
+# Planit Utils & Preconfig
+#
+
+pwd="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# We need to set this here to use Planit libs externally
+PLAN__PATH_ROOT="${pwd}/planit"
+source "${pwd}/planit.conf"
+source "${pwd}/planit/lib/logging.sh" --component logger
+
+path_modules="${pwd}/modules"
+path_library="${pwd}/library"
+
+declare -a modules
+for path in "${path_modules}/"*; do
+    modules+=("$path")
+done
+
+declare -A library
+for path in "${path_library}/"*; do
+    library_name="$(basename "$path")"
+    library_name="${library_name#*_install_}"
+    library["${library_name%.*}"]="$path"
+done
+
+#
+# Parse Options
+#
+
+force_root='false'
+declare -A library_targets
+
+while :; do
+    case "$1" in
+        --force-root) force_root='true' ;;
+        --library)
+            # TODO Need function for iterating over required libs
+            IFS=, read -ra targets <<< "$2"
+            for target in "${targets[@]}"; do
+                target_path="${library["$target"]}"
+                if ! [ -e "$target_path" ]; then
+                    Plan::log.error "Unknown library module '$target'"
+                    exit 1
+                fi
+                if [ -z "${library_targets["$target"]}" ]; then
+                    Plan::log.debug "Adding library module '$target'"
+                    library_targets["$target"]="$target_path"
+                fi
+                if [ -f "${target_path}/require.conf" ]; then
+                    read -d ' ' -ra required < <(cat "${target_path}/require.conf")
+                    for req in "${required[@]}"; do
+                        if [ -z "${library["$req"]}" ]; then
+                            Plan::log.error "Unknown requirement '$req' of '$target'"
+                            exit 1
+                        fi
+                        if [ -z "${library_targets["$req"]}" ]; then
+                            Plan::log.debug "Adding required library module '$req'"
+                            library_targets["$req"]="${library["$req"]}"
+                        fi
+                    done
+                fi
+            done
+            shift
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *) break ;;
+    esac
+    shift
+done
+
+#
+# Exit Handling
+#
+
+# We need to set the trap here before setting up caches and background procs.
+# Also init the authentication process ID as this process (changed below).
+
+auth_pid="$$"
+trap 'Plan::log.debug "Cleaning up \"$module_cache\""; rm -rf "$module_cache"; kill -KILL "$auth_pid" 2>/dev/null' \
+    EXIT INT TERM HUP QUIT
+
+#
+# Root Authentication
+#
+
+if [ "$(id -u)" = '0' ] && [ "$force_root" != 'true' ]; then
+    Plan::log.error 'Attempting to run a root install requires --force-root'
+    exit 1
+elif ! sudo -n true 2> /dev/null; then
+    Plan::log.info 'Installer requires an authenticated session'
+    if ! sudo -v; then
+        Plan::log.error "Failed to authenticate user '$USER'"
+        exit 1
+    fi
+fi
+
+while :; do
+    sudo -v || break
+    sleep 15
+done &
+
+auth_pid="$!"
+Plan::log.debug "Sudo authentication process: $auth_pid"
+
+#
+# Distribution
+#
+
+if [ -f /etc/os-release ]; then
+    source /etc/os-release
+    __DISTRIB__="${ID,,}"
+elif [ -f /etc/lsb-release ]; then
+    source /etc/lsb-release
+    __DISTRIB__="${DISTRIB_ID,,}"
+else
+    Plan::log.error 'Failed to determine system distribution'
+    exit 1
+fi
+
+export __DISTRIB__
+Plan::log.debug "System distribution '$__DISTRIB__'"
+
+#
+# Package Manager
+#
+
+if [ "$__DISTRIB__" = 'debian' ]; then
+    pkg_update() { sudo apt update -y; }
+    pkg_install() { sudo apt install -y "$@"; }
+elif [ "$__DISTRIB__" = 'fedora' ]; then
+    pkg_update() { sudo dnf makecache --refresh || true; }
+    pkg_install() { sudo dnf install -y "$@"; }
+else
+    Plan::log.error "Invalid distribution '$__DISTRIB__'"
+    exit 1
+fi
+
+export -f pkg_update
+export -f pkg_install
+
+#
+# Populate Module Cache
+#
+
+module_cache="$(mktemp -d)" || {
+    Plan::log.error 'Failed to create module cache'
+    exit 1
+}
+Plan::log.debug "Module cache created '$module_cache'"
+
+mkdir "${module_cache}/modules"
+
+for path in "${modules[@]}"; do
+    ln -s "$path" "${module_cache}/${path##*/}" || {
+        Plan::log.error "Failed to cache core module '$path'"
+        exit 1
+    }
+    Plan::log.debug "Core module cached '$path'"
+done
+
+if [ "${#library_targets[@]}" -gt 0 ]; then
+    for path in "${library_targets[@]}"; do
+        ln -s "$path" "${module_cache}/modules/${path##*/}" || {
+            Plan::log.error "Failed to cache library module '$path'"
+            exit 1
+        }
+        Plan::log.debug "Library module cached '$path'"
+    done
+else
+    for path in "${library[@]}"; do
+        ln -s "$path" "${module_cache}/modules/${path##*/}" || {
+            Plan::log.error "Failed to cache library module '$path'"
+            exit
+        }
+        Plan::log.debug "Library module cached '$path'"
+    done
+fi
+
+#
+# Run Installer
+#
+
+# "${pwd}/planit/planit" -- "$@"

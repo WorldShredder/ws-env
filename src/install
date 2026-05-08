@@ -186,8 +186,6 @@ module_cache="$(mktemp -d)" || {
 }
 Plan::log.debug "Module cache created '$module_cache'"
 
-mkdir "${module_cache}/modules"
-
 for path in "${modules[@]}"; do
     ln -s "$path" "${module_cache}/${path##*/}" || {
         Plan::log.error "Failed to cache core module '$path'"
@@ -198,7 +196,7 @@ done
 
 if [ "${#library_targets[@]}" -gt 0 ]; then
     for path in "${library_targets[@]}"; do
-        ln -s "$path" "${module_cache}/modules/${path##*/}" || {
+        ln -s "$path" "${module_cache}/${path##*/}" || {
             Plan::log.error "Failed to cache library module '$path'"
             exit 1
         }
@@ -206,7 +204,7 @@ if [ "${#library_targets[@]}" -gt 0 ]; then
     done
 else
     for path in "${library[@]}"; do
-        ln -s "$path" "${module_cache}/modules/${path##*/}" || {
+        ln -s "$path" "${module_cache}/${path##*/}" || {
             Plan::log.error "Failed to cache library module '$path'"
             exit
         }
@@ -218,4 +216,4 @@ fi
 # Run Installer
 #
 
-# "${pwd}/planit/planit" -- "$@"
+"${pwd}/planit/planit" -m "${module_cache}" -- "$@"

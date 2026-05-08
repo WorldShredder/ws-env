@@ -8,6 +8,7 @@ pwd="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # We need to set this here to use Planit libs externally
 PLAN__PATH_ROOT="${pwd}/planit"
+source "${pwd}/planit/planit.conf"
 source "${pwd}/planit.conf"
 source "${pwd}/planit/lib/logging.sh" --component logger
 
@@ -92,8 +93,10 @@ while :; do
             for target in "${targets[@]}"; do
                 add_library_target "$target"
             done
-            [ -z "${library_targets[*]}" ] \
-                && no_library='true'
+            if [ -z "${library_targets[*]}" ]; then
+                Plan::log.info 'Installing core modules only'
+                no_library='true'
+            fi
             shift
             ;;
         -h | --help)
@@ -168,9 +171,11 @@ Plan::log.debug "System distribution '$__DISTRIB__'"
 if [ "$__DISTRIB__" = 'debian' ]; then
     pkg_update() { sudo apt update -y; }
     pkg_install() { sudo apt install -y "$@"; }
+    pkg_remove() { sudo apt remove -y "$@"; }
 elif [ "$__DISTRIB__" = 'fedora' ]; then
-    pkg_update() { sudo dnf makecache --refresh || true; }
+    pkg_update() { sudo dnf makecache --refresh; }
     pkg_install() { sudo dnf install -y "$@"; }
+    pkg_remove() { sudo dnf remove -y "$@"; }
 else
     Plan::log.error "Invalid distribution '$__DISTRIB__'"
     exit 1

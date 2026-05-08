@@ -80,6 +80,7 @@ EOF
 #
 
 force_root='false'
+no_library='false'
 declare -A library_targets
 
 while :; do
@@ -91,6 +92,8 @@ while :; do
             for target in "${targets[@]}"; do
                 add_library_target "$target"
             done
+            [ -z "${library_targets[*]}" ] \
+                && no_library='true'
             shift
             ;;
         -h | --help)
@@ -202,7 +205,7 @@ if [ "${#library_targets[@]}" -gt 0 ]; then
         }
         Plan::log.debug "Library module cached '$path'"
     done
-else
+elif [ "$no_library" != 'true' ]; then
     for path in "${library[@]}"; do
         ln -s "$path" "${module_cache}/${path##*/}" || {
             Plan::log.error "Failed to cache library module '$path'"
@@ -216,4 +219,4 @@ fi
 # Run Installer
 #
 
-"${pwd}/planit/planit" -m "${module_cache}" -- "$@"
+# "${pwd}/planit/planit" -m "${module_cache}" -- "$@"

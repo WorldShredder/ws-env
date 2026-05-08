@@ -26,6 +26,31 @@ for path in "${path_library}/"*; do
     library["${library_name%.*}"]="$path"
 done
 
+add_library_target() {
+    local target="$1"
+    local target_path="${library["$target"]}"
+    if ! [ -e "$target_path" ]; then
+        Plan::log.error "Unknown library module '$target'"
+        exit 1
+    fi
+    if [ -z "${library_targets["$target"]}" ]; then
+        Plan::log.debug "Adding library module '$target'"
+        library_targets["$target"]="$target_path"
+    else
+        Plan::log.debug "Skipping library module '$target'"
+        return 0
+    fi
+    local -a required
+    local req
+    if [ -f "${target_path}/require.conf" ]; then
+        read -d ' ' -ra required < <(cat "${target_path}/require.conf")
+        for req in "${required[@]}"; do
+            Plan::log.debug "Library module '$target' requires '$req'"
+            add_library_target "$req"
+        done
+    fi
+}
+
 #
 # Parse Options
 #
@@ -40,28 +65,7 @@ while :; do
             # TODO Need function for iterating over required libs
             IFS=, read -ra targets <<< "$2"
             for target in "${targets[@]}"; do
-                target_path="${library["$target"]}"
-                if ! [ -e "$target_path" ]; then
-                    Plan::log.error "Unknown library module '$target'"
-                    exit 1
-                fi
-                if [ -z "${library_targets["$target"]}" ]; then
-                    Plan::log.debug "Adding library module '$target'"
-                    library_targets["$target"]="$target_path"
-                fi
-                if [ -f "${target_path}/require.conf" ]; then
-                    read -d ' ' -ra required < <(cat "${target_path}/require.conf")
-                    for req in "${required[@]}"; do
-                        if [ -z "${library["$req"]}" ]; then
-                            Plan::log.error "Unknown requirement '$req' of '$target'"
-                            exit 1
-                        fi
-                        if [ -z "${library_targets["$req"]}" ]; then
-                            Plan::log.debug "Adding required library module '$req'"
-                            library_targets["$req"]="${library["$req"]}"
-                        fi
-                    done
-                fi
+                add_library_target "$target"
             done
             shift
             ;;

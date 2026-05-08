@@ -51,6 +51,30 @@ add_library_target() {
     fi
 }
 
+print_help() {
+    cat << EOF
+Usage: ${0##*/} [OPTIONS ...] [--] [MODULE_OPTIONS ...]
+
+Workstation environment setup script. Running without any defined library
+modules will install everything. For dynamic installation see --library.
+Installation is managed by the Planit framework.
+
+Options:
+      --library TARGETS
+               Comma-separated list of library modules to install. Each module
+               will dynamically load its requirements for you. Omitting this
+               option will lead to the installation of all modules.
+      --force-root
+               Force installation as user 'root'. This is generally recommended
+               against and may lead to an unstable install.
+  -h, --help   Print this help message.
+
+Example:
+  ${0##*/} --library neovim,tmux
+  ${0##*/} --library nerdfonts -- --font jetbrainsmono,robotomono
+EOF
+}
+
 #
 # Parse Options
 #
@@ -68,6 +92,10 @@ while :; do
                 add_library_target "$target"
             done
             shift
+            ;;
+        -h | --help)
+            print_help
+            exit 0
             ;;
         --)
             shift

@@ -2,8 +2,8 @@
 
 declare -a required
 case "$__DISTRIB__" in
-    debian) required+=(curl git tar xz-utils unzip) ;;
-    fedora) required+=(curl git tar xz-utils unzip) ;;
+    debian) required+=(curl git tar xz-utils unzip jq) ;;
+    fedora) required+=(curl git tar xz-utils unzip jq) ;;
     *) exit 1 ;;
 esac
 

@@ -46,8 +46,18 @@ fi
 #
 
 Plan::log.mod 'Purging nvm, node, npm'
+
 pkg_remove nodejs
 [ -e "$NVM_DIR" ] \
     && rm -rf "$NVM_DIR"
+
+IFS=' ' read -ra shells <<< "$WSE__SHELLS"
+for sh in "${shells[@]}"; do
+    if [ "$sh" = 'bash' ]; then
+        sed -i '/.*NVM_DIR.*/d' "${HOME}/.bashrc" || true
+    elif [ "$sh" = 'zsh' ]; then
+        sed -i '/.*NVM_DIR.*/d' "${HOME}/.zshrc" || true
+    fi
+done
 
 Plan::log.mod ' '

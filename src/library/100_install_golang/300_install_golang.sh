@@ -10,7 +10,7 @@ if [ "$GOLANG_SKIP_INSTALL" = 'true' ]; then
     exit 0
 fi
 
-Plan::log.mod "Installing Go v${GOLANG_VERSION}"
+Plan::log.mod "Installing v${GOLANG_VERSION}"
 sudo -u "$GOLANG_OWNER" tar \
     -xzf "${PLAN__PATH_CACHE}/golang.tar.gz" -C "$GOLANG_INSTALL_DIR"
 

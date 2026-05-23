@@ -10,7 +10,7 @@ if [ "$GOLANG_SKIP_INSTALL" = 'true' ]; then
     exit 0
 fi
 
-Plan::log.mod "Downloading Go v${GOLANG_VERSION}"
+Plan::log.mod "Downloading v${GOLANG_VERSION}"
 path="https://go.dev/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz"
 curl -L "$path" > "${PLAN__PATH_CACHE}/golang.tar.gz"
 

@@ -21,13 +21,13 @@ Plan::vcache.add -e global GOPATH "${GOLANG_GOPATH}"
 Plan::vcache.add -e global PATH \
     "${GOLANG_INSTALL_DIR}/go/bin:${GOPATH}/bin:${PATH}"
 
-if [ -z "$__SHELLS__" ]; then
-    Plan::log.mod ''
+if [ -z "$WSE__SHELLS" ]; then
+    Plan::log.mod ' '
     exit 0
 fi
 
-Plan::log.mod "Configuring shells: $__SHELLS__"
-IFS=' ' read -ra shells <<< "$__SHELLS__"
+Plan::log.mod "Configuring shells: $WSE__SHELLS"
+IFS=' ' read -ra shells <<< "$WSE__SHELLS"
 for sh in "${shells[@]}"; do
     path="${HOME}/.shellrc.d/${sh}/100_golang_path.sh"
     printf 'export GOPATH="%s"\n' "$GOPATH" > "$path"
@@ -35,4 +35,4 @@ for sh in "${shells[@]}"; do
         "${GOLANG_INSTALL_DIR}/go/bin" "${GOPATH}/bin" >> "$path"
 done
 
-Plan::log.mod ''
+Plan::log.mod ' '

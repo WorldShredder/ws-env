@@ -204,6 +204,7 @@ fi
 
 export -f pkg_update
 export -f pkg_install
+export -f pkg_remove
 
 #
 # Populate Module Cache

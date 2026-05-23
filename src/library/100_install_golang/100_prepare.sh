@@ -11,7 +11,7 @@ GOLANG_PURGE='false'
 GOLANG_INSTALL_DIR="${HOME}/.local/opt"
 GOLANG_GOPATH="${HOME}/.local/go"
 
-while :; do
+while [ $# -gt 0 ]; do
     case "$1" in
         --golang-update)
             GOLANG_UPDATE='true'
@@ -30,10 +30,6 @@ while :; do
         --golang-gopath)
             GOLANG_GOPATH="$2"
             shift
-            ;;
-        --)
-            shift
-            break
             ;;
     esac
     shift
@@ -93,4 +89,4 @@ for f in "${rm_targets[@]}"; do
         && sudo rm -rf "$f"
 done
 
-Plan::log.mod -c 2 'Done'
+Plan::log.mod ' '

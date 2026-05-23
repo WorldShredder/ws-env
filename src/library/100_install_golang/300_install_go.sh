@@ -31,8 +31,10 @@ IFS=' ' read -ra shells <<< "$WSE__SHELLS"
 for sh in "${shells[@]}"; do
     path="${HOME}/.shellrc.d/${sh}/100_golang_path.sh"
     printf 'export GOPATH="%s"\n' "$GOPATH" > "$path"
-    printf 'export PATH="%s:%s:$PATH"' \
-        "${GOLANG_INSTALL_DIR}/go/bin" "${GOPATH}/bin" >> "$path"
+    printf 'export PATH="%s:%s:$PATH"\n' \
+        "${GOLANG_INSTALL_DIR}/go/bin" \
+        "${GOPATH}/bin" \
+        >> "$path"
 done
 
 Plan::log.mod ' '

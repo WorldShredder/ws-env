@@ -27,6 +27,41 @@ for path in "${path_library}/"*; do
     library["${library_name%.*}"]="$path"
 done
 
+print_help() {
+    cat << EOF
+Usage: ${0##*/} [OPTIONS ...] [--] [MODULE_OPTIONS ...]
+
+Workstation environment setup script. Running without any defined library
+modules will install everything. For dynamic installation see --lib.
+Installation is managed by the Planit framework.
+
+Options:
+  -l, --lib TARGETS
+              Comma-separated list of library modules to install. Each module
+              will dynamically load its requirements for you. Omitting this
+              option will lead to the installation of all modules.
+  -s, --shell SHELL
+              Comma-separated list of shells to configure. The installer will
+              search for shell runtime configs (eg: .bashrc) and automatically
+              configure them for use with installed libraries. This only works
+              for a standard user install unless --force-root is passed.
+              Compatible shells: bash, zsh
+      --force-root
+              Force installation as user 'root'. This is generally recommended
+              against and may lead to an unstable install.
+  -h, --help  Print this help message.
+
+Example:
+  ${0##*/} --shell bash,zsh
+  ${0##*/} --shell bash --lib neovim,tmux
+  ${0##*/} --lib nerdfonts -- --font jetbrainsmono,robotomono
+EOF
+}
+
+#
+# Parse Options
+#
+
 add_library_target() {
     local target="$1"
     local target_path="${library["$target"]}"
@@ -38,7 +73,7 @@ add_library_target() {
         Plan::log.debug "Adding library module '$target'"
         library_targets["$target"]="$target_path"
     else
-        Plan::log.debug "Skipping library module '$target'"
+        Plan::log.debug "Skipping library module '$target' (duplicate)"
         return 0
     fi
     local -a required
@@ -52,43 +87,16 @@ add_library_target() {
     fi
 }
 
-print_help() {
-    cat << EOF
-Usage: ${0##*/} [OPTIONS ...] [--] [MODULE_OPTIONS ...]
-
-Workstation environment setup script. Running without any defined library
-modules will install everything. For dynamic installation see --library.
-Installation is managed by the Planit framework.
-
-Options:
-      --library TARGETS
-               Comma-separated list of library modules to install. Each module
-               will dynamically load its requirements for you. Omitting this
-               option will lead to the installation of all modules.
-      --force-root
-               Force installation as user 'root'. This is generally recommended
-               against and may lead to an unstable install.
-  -h, --help   Print this help message.
-
-Example:
-  ${0##*/} --library neovim,tmux
-  ${0##*/} --library nerdfonts -- --font jetbrainsmono,robotomono
-EOF
-}
-
-#
-# Parse Options
-#
-
+export WSE__SHELLS
 force_root='false'
 no_library='false'
+declare -a valid_shells=('bash' 'zsh')
 declare -A library_targets
 
 while :; do
     case "$1" in
         --force-root) force_root='true' ;;
-        --library)
-            # TODO Need function for iterating over required libs
+        -l | --lib)
             IFS=, read -ra targets <<< "$2"
             for target in "${targets[@]}"; do
                 add_library_target "$target"
@@ -97,6 +105,19 @@ while :; do
                 Plan::log.info 'Installing core modules only'
                 no_library='true'
             fi
+            shift
+            ;;
+        -s | --shell)
+            declare -a shell_targets
+            IFS=, read -ra shells <<< "$2"
+            for sh in "${shells[@]}"; do
+                if ! [[ " ${valid_shells[*]} " = *" $sh "* ]]; then
+                    Plan::log.error "Invalid shell '$sh'; see --help"
+                    exit 1
+                fi
+                shell_targets+=("$sh")
+            done
+            WSE__SHELLS="${shell_targets[*]}"
             shift
             ;;
         -h | --help)
@@ -152,32 +173,32 @@ Plan::log.debug "Sudo authentication process: $auth_pid"
 
 if [ -f /etc/os-release ]; then
     source /etc/os-release
-    __DISTRIB__="${ID,,}"
+    WSE__DISTRIB="${ID,,}"
 elif [ -f /etc/lsb-release ]; then
     source /etc/lsb-release
-    __DISTRIB__="${DISTRIB_ID,,}"
+    WSE__DISTRIB="${DISTRIB_ID,,}"
 else
     Plan::log.error 'Failed to determine system distribution'
     exit 1
 fi
 
-export __DISTRIB__
-Plan::log.debug "System distribution '$__DISTRIB__'"
+export WSE__DISTRIB
+Plan::log.debug "System distribution '$WSE__DISTRIB'"
 
 #
 # Package Manager
 #
 
-if [ "$__DISTRIB__" = 'debian' ]; then
+if [ "$WSE__DISTRIB" = 'debian' ]; then
     pkg_update() { sudo apt update -y; }
     pkg_install() { sudo apt install -y "$@"; }
     pkg_remove() { sudo apt remove -y "$@"; }
-elif [ "$__DISTRIB__" = 'fedora' ]; then
+elif [ "$WSE__DISTRIB" = 'fedora' ]; then
     pkg_update() { sudo dnf makecache --refresh; }
     pkg_install() { sudo dnf install -y "$@"; }
     pkg_remove() { sudo dnf remove -y "$@"; }
 else
-    Plan::log.error "Invalid distribution '$__DISTRIB__'"
+    Plan::log.error "Invalid distribution '$WSE__DISTRIB'"
     exit 1
 fi
 
@@ -217,6 +238,36 @@ elif [ "$no_library" != 'true' ]; then
             exit
         }
         Plan::log.debug "Library module cached '$path'"
+    done
+fi
+
+#
+# Shell Runtime Config
+#
+
+WSE::append_once() {
+    local tag="$1" path="$2"
+    shift 2
+    lines="$*"
+    local start_tag="# start=${tag}"
+    local end_tag="# end=${tag}"
+    ! grep -q "$start_tag" "$path" 2> /dev/null \
+        && printf '\n%s\n%s\n%s\n' "$start_tag" "$lines" "$end_tag" >> "$path"
+    return 0
+}
+export -f 'WSE::append_once'
+
+if [ -n "$WSE__SHELLS" ]; then
+    Plan::log.debug "Configuring libraries for: $WSE__SHELLS"
+    mkdir -p "${HOME}/.shellrc.d" || exit 1
+    IFS=' ' read -ra shells <<< "$WSE__SHELLS"
+    for sh in "${shells[@]}"; do
+        mkdir -p "${HOME}/.shellrc.d/${sh}" || exit 1
+        WSE::append_once 'shellrc' "${HOME}/.${sh}rc" \
+            "for f in '${HOME}/.shellrc.d/${sh}/'*;" \
+            'do [ -f "$f" ] && . "$f";' \
+            'done;' \
+            'unset f'
     done
 fi
 

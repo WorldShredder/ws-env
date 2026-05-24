@@ -276,4 +276,4 @@ fi
 # Run Installer
 #
 
-# "${pwd}/planit/planit" -m "${module_cache}" -- "$@"
+"${pwd}/planit/planit" -m "${module_cache}" -- "$@"

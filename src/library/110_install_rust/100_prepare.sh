@@ -47,7 +47,7 @@ Plan::log.mod 'Cleaning runtime configs'
 IFS=' ' read -ra shells <<< "$WSE__SHELLS"
 for sh in "${shells[@]}"; do
     if [ "$sh" = 'bash' ] || [ "$sh" = 'zsh' ]; then
-        sed -i '/$HOME/\.cargo\/env/d' "${HOME}/.${sh}rc" || true
+        sed -i '/$HOME\/\.cargo\/env/d' "${HOME}/.${sh}rc" || true
     fi
 done
 

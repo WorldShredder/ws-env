@@ -25,6 +25,8 @@ else
     Plan::log.mod "Installing v${LUA_VERSION}"
     cd "${PLAN__PATH_CACHE}/lua-${LUA_VERSION}"
     sudo make install
+    cd ..
+    rm -rf "${PLAN__PATH_CACHE}/lua-${LUA_VERSION}*"
 fi
 
 Plan::log.mod ' '

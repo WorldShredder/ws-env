@@ -31,19 +31,19 @@ done
 Plan::vcache.add local RUST_USE_PKGMAN "$RUST_USE_PKGMAN"
 Plan::vcache.add local RUST_RUSTUP_ARGS "$RUST_RUSTUP_ARGS"
 
-if command -v cargo; then
-    if [ "$RUST_PURGE" != 'true' ]; then
-        Plan::log.mod 'Skipping'
-        Plan::vcache.add local RUST_SKIP_INSTALL true
-        exit 0
-    fi
+if [ "$RUST_PURGE" = 'true' ]; then
+    Plan::log.mod 'Purging Cargo/Rust'
+    pkg_remove cargo rustup
+    rm -rf "${HOME}/.cargo"
 fi
 
-Plan::log.mod 'Purging Cargo/Rust'
+if command -v cargo; then
+    Plan::log.mod 'Skipping'
+    Plan::vcache.add local RUST_SKIP_INSTALL true
+    exit 0
+fi
 
-pkg_remove cargo rustup
-rm -rf "${HOME}/.cargo"
-
+Plan::log.mod 'Cleaning runtime configs'
 IFS=' ' read -ra shells <<< "$WSE__SHELLS"
 for sh in "${shells[@]}"; do
     if [ "$sh" = 'bash' ] || [ "$sh" = 'zsh' ]; then

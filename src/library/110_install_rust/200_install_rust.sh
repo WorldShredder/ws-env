@@ -18,7 +18,7 @@ if [ "$RUST_USE_PKGMAN" = 'true' ]; then
 fi
 
 Plan::log.mod 'Downloading Rustup script'
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+curl --proto '=https' --tlsv1.2 -f https://sh.rustup.rs \
     > "${PLAN__PATH_CACHE}/rustup"
 
 Plan::log.mod 'Installing Rust via Rustup'

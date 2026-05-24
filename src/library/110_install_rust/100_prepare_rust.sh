@@ -29,11 +29,8 @@ while [ $# -gt 0 ]; do
 done
 
 #
-# Environment
+# Remove Install
 #
-
-Plan::vcache.add local RUST_USE_PKGMAN "$RUST_USE_PKGMAN"
-Plan::vcache.add local RUST_RUSTUP_ARGS "$RUST_RUSTUP_ARGS"
 
 if [ "$RUST_PURGE" = 'true' ]; then
     Plan::log.mod 'Purging Cargo/Rust'
@@ -54,5 +51,12 @@ for sh in "${shells[@]}"; do
         sed -i '/$HOME\/\.cargo\/env/d' "${HOME}/.${sh}rc" || true
     fi
 done
+
+#
+# Environment
+#
+
+Plan::vcache.add local RUST_USE_PKGMAN "$RUST_USE_PKGMAN"
+Plan::vcache.add local RUST_RUSTUP_ARGS "$RUST_RUSTUP_ARGS"
 
 Plan::log.mod ' '

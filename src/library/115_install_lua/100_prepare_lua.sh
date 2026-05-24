@@ -43,7 +43,6 @@ fi
 
 if [ "$LUA_PURGE" = 'true' ]; then
     Plan::log.mod 'Purging Lua'
-
     declare -a remove_targets
     case "$WSE__DISTRIB" in
         debian) remove_targets+=(
@@ -52,11 +51,18 @@ if [ "$LUA_PURGE" = 'true' ]; then
         fedora) remove_targets+=('lua') ;;
     esac
 
-    pkg_remove "${remove_targets[@]}"
+    # Some lua packages may not exist and cause failure
+    for pkg in "${remove_targets[@]}"; do
+        pkg_remove "$pkg" || true
+    done
 
-    # Purge build in build script
-    [ "$LUA_USE_PKGMAN" != 'true' ] \
-        && Plan::vcache.add local LUA_PURGE true
+    if [ "$LUA_USE_PKGMAN" ]; then
+        sudo rm -f /usr/bin/lua /usr/local/bin/lua "$(command -v lua || true)"
+        if command -v lua; then
+            Plan::log.mod -c 1 'Failed to purge Lua'
+            exit 1
+        fi
+    fi
 fi
 
 # Check built installs in build script
@@ -77,5 +83,6 @@ fi
 
 Plan::vcache.add local LUA_VERSION "$LUA_VERSION"
 Plan::vcache.add local LUA_USE_PKGMAN "$LUA_USE_PKGMAN"
+Plan::vcache.add local LUA_PURGE "$LUA_PURGE"
 
 Plan::log.mod ' '

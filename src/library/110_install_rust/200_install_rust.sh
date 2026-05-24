@@ -25,6 +25,10 @@ Plan::log.mod 'Installing Rust via Rustup'
 IFS=' ' read -ra args <<< "$RUST_RUSTUP_ARGS"
 sh "${PLAN__PATH_CACHE}/rustup" -y "${args[@]}"
 
+Plan::log.mod 'Verifying install'
+source "${HOME}/.cargo/env"
+cargo --version
+
 Plan::log.mod "Configuring shells: $WSE__SHELLS"
 IFS=' ' read -ra shells <<< "$WSE__SHELLS"
 for sh in "${shells[@]}"; do

@@ -20,6 +20,10 @@ while [ $# -gt 0 ]; do
             RUST_RUSTUP_ARGS="$2"
             shift
             ;;
+        --rust-*)
+            Plan::log.mod -c 1 "Invalid option '$1'"
+            exit 1
+            ;;
     esac
     shift
 done

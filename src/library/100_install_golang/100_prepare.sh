@@ -31,6 +31,10 @@ while [ $# -gt 0 ]; do
             GOLANG_GOPATH="$2"
             shift
             ;;
+        --golang-*)
+            Plan::log.mod -c 1 "Invalid option '$1'"
+            exit 1
+            ;;
     esac
     shift
 done

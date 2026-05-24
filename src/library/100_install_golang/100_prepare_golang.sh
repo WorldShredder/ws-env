@@ -16,7 +16,7 @@ while [ $# -gt 0 ]; do
         --golang-update)
             GOLANG_UPDATE='true'
             ;;
-        --golang-purge)
+        --golang-purge | --purge)
             GOLANG_PURGE='true'
             ;;
         --golang-version)

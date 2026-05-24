@@ -10,10 +10,10 @@ RUST_USE_PKGMAN='false'
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        --rust-purge)
+        --rust-purge | --purge)
             RUST_PURGE='true'
             ;;
-        --rust-use-pkgman)
+        --rust-use-pkgman | --pkgman)
             RUST_USE_PKGMAN='true'
             ;;
         --rust-rustup-args)

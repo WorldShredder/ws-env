@@ -19,7 +19,7 @@ while [ $# -gt 0 ]; do
             NODE_NVM_VERSION="$2"
             shift
             ;;
-        --node-purge)
+        --node-purge | --purge)
             NODE_PURGE='true'
             ;;
         --node-*)

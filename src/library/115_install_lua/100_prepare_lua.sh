@@ -14,10 +14,10 @@ while [ $# -gt 0 ]; do
             LUA_VERSION="$2"
             shift
             ;;
-        --lua-purge)
+        --lua-purge | --purge)
             LUA_PURGE='true'
             ;;
-        --lua-use-pkgman)
+        --lua-use-pkgman | --pkgman)
             LUA_USE_PKGMAN='true'
             ;;
         --lua-*)

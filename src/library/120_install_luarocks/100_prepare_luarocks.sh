@@ -58,7 +58,7 @@ if [ "$LUAROCKS_PURGE" = 'true' ]; then
 fi
 
 # Check built installs in build script
-if [ "$LUAROCKS_USE_PKGMAN" ] && command -v lua; then
+if [ "$LUAROCKS_USE_PKGMAN" ] && command -v luarocks; then
     Plan::log.mod 'Skipping'
     Plan::vcache.add local LUAROCKS_SKIP_INSTALL true
     exit 0

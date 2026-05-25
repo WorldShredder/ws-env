@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+# shellcheck disable=SC2034,SC2016
+
+set -eo pipefail
+trap 'exit $?' ERR
+
+if [ "$FZF_SKIP_INSTALL" = 'true' ]; then
+    Plan::log.mod 'Skipping'
+    exit 0
+fi
+
+#
+# Install Package
+#
+
+if [ "$FZF_USE_PKGMAN" = 'true' ]; then
+    Plan::log.mod "Installing via ${WSE__DISTRIB} package manager"
+    pkg_install fzf
+    Plan::log.mod ' '
+fi
+
+#
+# Install Binary
+#
+
+Plan::log.mod "Copying FZF to /usr/local/opt"
+
+rm -rf "$FZF_DL_PATH/.git"
+install_path="${HOME}/.local/opt"
+
+mkdir -p "$install_path"
+cp -r "$FZF_DL_PATH" "$install_path"
+
+# Now we can setup runtime config and completions
+Plan::log.mod 'Setting up completions'
+/usr/local/opt/fzf/install --all
+
+# Plan::log.mod "Configuring shells: $WSE__SHELLS"
+# IFS=' ' read -ra shells <<< "$WSE__SHELLS"
+# for sh in "${shells[@]}"; do
+#     path="${HOME}/.shellrc.d/${sh}/300_fzf_completion.sh"
+#     printf 'export GOPATH="%s"\n' "$GOPATH" > "$path"
+#     printf 'export PATH="%s:%s:$PATH"\n' \
+#         "${GOLANG_INSTALL_DIR}/go/bin" \
+#         "${GOPATH}/bin" \
+#         >> "$path"
+# done
+
+Plan::log.mod 'Cleaning up'
+rm -rf "$FZF_DL_PATH"
+
+Plan::log.mod ' '

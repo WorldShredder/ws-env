@@ -45,6 +45,7 @@ if [ "$LUAROCKS_PURGE" = 'true' ]; then
     Plan::log.mod 'Purging Luarocks'
     pkg_remove luarocks
 
+    # Do this here since removal for builds is handled by make
     if [ "$LUAROCKS_USE_PKGMAN" ]; then
         sudo rm -f \
             /usr/bin/luarocks \

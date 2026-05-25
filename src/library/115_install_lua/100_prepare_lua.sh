@@ -56,6 +56,7 @@ if [ "$LUA_PURGE" = 'true' ]; then
         pkg_remove "$pkg" || true
     done
 
+    # Do this here since removal for builds is handled by make
     if [ "$LUA_USE_PKGMAN" ]; then
         sudo rm -f /usr/bin/lua /usr/local/bin/lua "$(command -v lua || true)"
         if command -v lua; then

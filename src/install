@@ -278,6 +278,48 @@ if [ -n "$WSE__SHELLS" ]; then
 fi
 
 #
+# Environment: Functions
+#
+WSE::git_download() {
+    local name="$1" commit='' tag='' output=''
+    shift
+    while :; do
+        case "$1" in
+            -t | --tag)
+                tag="$2"
+                shift
+                ;;
+            -c | --commit)
+                commit="$2"
+                shift
+                ;;
+            -o | --output)
+                output="$2"
+                shift
+                ;;
+            *) break ;;
+        esac
+        shift
+    done
+    local repo="${name##*/}"
+    local repo_url="https://github.com/${name}"
+    if [ -n "$tag" ]; then
+        git clone --depth 1 -b "$tag" "$repo_url" "$output"
+    else
+        git clone "$repo_url" "$output"
+        [ -n "$commit" ] \
+            && (cd "$repo" && git checkout "$commit")
+    fi
+}
+export -f 'WSE::git_download'
+
+#
+# Environment: Variables
+#
+
+export GITHUB_API_URL='https://api.github.com/repos'
+
+#
 # Run Installer
 #
 

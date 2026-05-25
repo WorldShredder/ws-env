@@ -34,7 +34,7 @@ cp -r "$FZF_DL_PATH" "$install_path"
 
 # Now we can setup runtime config and completions
 Plan::log.mod 'Setting up completions'
-/usr/local/opt/fzf/install --all
+"${install_path}/fzf/install" --all
 
 # Plan::log.mod "Configuring shells: $WSE__SHELLS"
 # IFS=' ' read -ra shells <<< "$WSE__SHELLS"

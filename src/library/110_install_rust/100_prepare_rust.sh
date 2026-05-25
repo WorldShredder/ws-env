@@ -35,7 +35,7 @@ done
 if [ "$RUST_PURGE" = 'true' ]; then
     Plan::log.mod 'Purging Cargo/Rust'
     pkg_remove cargo rustup
-    rm -rf "${HOME}/.cargo"
+    rm -rf "${HOME}/.cargo" "${HOME}/.rustup"
 
     if command -v cargo; then
         Plan::log.mod -c 1 'Failed to purge Cargo/Rust'

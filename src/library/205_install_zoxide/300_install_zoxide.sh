@@ -38,7 +38,7 @@ for sh in "${shells[@]}"; do
             > "${WSE__SHELLRCD}/${name}"
     fi
 
-    name='301_zoxide_init.sh'
+    name="301_zoxide_init.${sh}"
     printf '%s\n' "eval \"\$(zoxide init $sh)\"" \
         > "${WSE__SHELLRCD}/${name}"
 done

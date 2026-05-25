@@ -14,7 +14,7 @@ fi
 # Download Source
 #
 
-Plan::vcache.add -s FZF_DL_PATH "${PLAN__PATH_CACHE}/fzf"
+Plan::vcache.add -s local FZF_DL_PATH "${PLAN__PATH_CACHE}/fzf"
 rm -rf "$FZF_DL_PATH"
 
 if [ -n "$FZF_TAG" ]; then

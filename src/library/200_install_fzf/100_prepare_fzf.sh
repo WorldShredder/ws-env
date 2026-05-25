@@ -46,7 +46,7 @@ if [ "$FZF_PURGE" = 'true' ]; then
     Plan::log.mod 'Purging FZF'
     pkg_remove fzf || true
 
-    rm -rf \
+    sudo rm -rf \
         /usr/bin/fzf \
         /usr/local/bin/fzf \
         /usr/local/opt/fzf \

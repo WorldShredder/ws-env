@@ -297,19 +297,26 @@ WSE::git_download() {
                 output="$2"
                 shift
                 ;;
-            *) break ;;
+            '') break ;;
+            *) exit 1 ;;
         esac
         shift
     done
     local repo="${name##*/}"
     local repo_url="https://github.com/${name}"
+    output="${output:-$repo}"
     if [ -n "$tag" ]; then
-        git clone --depth 1 -b "$tag" "$repo_url" "$output"
+        git clone --depth 1 -b "$tag" "$repo_url" "${output}" || return 1
     else
-        git clone "$repo_url" "$output"
-        [ -n "$commit" ] \
-            && (cd "$repo" && git checkout "$commit")
+        git clone "$repo_url" "$output" || return 1
+        if [ -n "$commit" ]; then
+            (
+                cd "$output"
+                git checkout "$commit"
+            ) || return 1
+        fi
     fi
+    return 0
 }
 export -f 'WSE::git_download'
 

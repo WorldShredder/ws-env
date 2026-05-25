@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+WSE__VERSION='0.1.0'
+
 #
 # Planit Utils & Preconfig
 #
@@ -49,12 +51,14 @@ Options:
       --force-root
               Force installation as user 'root'. This is generally recommended
               against and may lead to an unstable install.
+  -v, --version
+              Print WS-Env version.
   -h, --help  Print this help message.
 
 Example:
   ${0##*/} --shell bash,zsh
-  ${0##*/} --shell bash --lib neovim,tmux
-  ${0##*/} --lib nerdfonts -- --font jetbrainsmono,robotomono
+  ${0##*/} --shell bash --lib neovim,tmux --purge
+  ${0##*/} --lib nerdfonts --nerdfonts-font jetbrainsmono,robotomono
 EOF
 }
 
@@ -210,8 +214,9 @@ export -f pkg_remove
 # Populate Module Cache
 #
 
-module_cache="$(mktemp -d)" || {
-    Plan::log.error 'Failed to create module cache'
+module_cache="${TEMPDIR:-/tmp}/wse.v${WSE__VERSION}.cache"
+mkdir -p "$module_cache" || {
+    Plan::log.error "Failed to create module cache '${module_cache}'"
     exit 1
 }
 Plan::log.debug "Module cache created '$module_cache'"

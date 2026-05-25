@@ -20,13 +20,13 @@ fi
 #
 
 Plan::log.mod "Downloading v${LUA_VERSION}"
+Plan::vcache.add -s local LUA_DL_NAME "lua-${LUA_VERSION}"
 cd "${PLAN__PATH_CACHE}"
-lua_name="lua-${LUA_VERSION}"
-curl -fLRO "https://lua.org/ftp/${lua_name}.tar.gz"
+curl -fLRO "https://lua.org/ftp/${LUA_DL_NAME}.tar.gz"
 
-Plan::log.mod "Decompressing '${lua_name}.tar.gz'"
-tar xzpf "${lua_name}.tar.gz"
-cd "$lua_name"
+Plan::log.mod "Decompressing '${LUA_DL_NAME}.tar.gz'"
+tar xzpf "${LUA_DL_NAME}.tar.gz"
+cd "$LUA_DL_NAME"
 
 #
 # Remove Install

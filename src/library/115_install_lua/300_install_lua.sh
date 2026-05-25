@@ -23,10 +23,10 @@ if [ "$LUA_USE_PKGMAN" = 'true' ]; then
     esac
 else
     Plan::log.mod "Installing v${LUA_VERSION}"
-    cd "${PLAN__PATH_CACHE}/lua-${LUA_VERSION}"
+    cd "${PLAN__PATH_CACHE}/${LUA_DL_NAME}"
     sudo make install
     cd ..
-    rm -rf "${PLAN__PATH_CACHE}/lua-${LUA_VERSION}*"
+    rm -rf "${LUA_DL_NAME}"{,.tar.gz}
 fi
 
 Plan::log.mod ' '

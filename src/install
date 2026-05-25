@@ -248,7 +248,7 @@ elif [ "$no_library" != 'true' ]; then
 fi
 
 #
-# Shell Runtime Config
+# Environment: Functions
 #
 
 WSE::append_once() {
@@ -263,23 +263,6 @@ WSE::append_once() {
 }
 export -f 'WSE::append_once'
 
-if [ -n "$WSE__SHELLS" ]; then
-    Plan::log.debug "Configuring libraries for: $WSE__SHELLS"
-    mkdir -p "${HOME}/.shellrc.d" || exit 1
-    IFS=' ' read -ra shells <<< "$WSE__SHELLS"
-    for sh in "${shells[@]}"; do
-        mkdir -p "${HOME}/.shellrc.d/${sh}" || exit 1
-        WSE::append_once 'shellrc' "${HOME}/.${sh}rc" \
-            "for f in '${HOME}/.shellrc.d/${sh}/'*;" \
-            'do [ -f "$f" ] && . "$f";' \
-            'done;' \
-            'unset f'
-    done
-fi
-
-#
-# Environment: Functions
-#
 WSE::git_download() {
     local name="$1" commit='' tag='' output=''
     shift
@@ -325,6 +308,24 @@ export -f 'WSE::git_download'
 #
 
 export GITHUB_API_URL='https://api.github.com/repos'
+
+#
+# Shell Runtime Config
+#
+
+if [ -n "$WSE__SHELLS" ]; then
+    Plan::log.debug "Configuring libraries for: $WSE__SHELLS"
+    mkdir -p "${HOME}/.shellrc.d" || exit 1
+    IFS=' ' read -ra shells <<< "$WSE__SHELLS"
+    for sh in "${shells[@]}"; do
+        mkdir -p "${HOME}/.shellrc.d/${sh}" || exit 1
+        WSE::append_once 'shellrc' "${HOME}/.${sh}rc" \
+            "for f in '${HOME}/.shellrc.d/${sh}/'*;" \
+            'do [ -f "$f" ] && . "$f";' \
+            'done;' \
+            'unset f'
+    done
+fi
 
 #
 # Run Installer

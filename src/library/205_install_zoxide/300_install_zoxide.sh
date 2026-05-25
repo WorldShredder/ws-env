@@ -21,7 +21,7 @@ else
     Plan::log.mod 'Running Zoxide install script'
     cd "$ZOXIDE_DL_PATH"
     rm -rf ./.git
-    ./install
+    ./install.sh
 
     Plan::log.mod 'Cleaning up'
     cd .. && rm -rf "$ZOXIDE_DL_PATH"

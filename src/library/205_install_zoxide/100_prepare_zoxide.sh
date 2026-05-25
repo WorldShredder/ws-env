@@ -47,6 +47,12 @@ if [ "$ZOXIDE_PURGE" = 'true' ]; then
     pkg_remove zoxide || true
 
     sudo rm -rf \
+        /usr/bin/zoxide \
+        /usr/share/zoxide \
+        /usr/local/bin/zoxide \
+        /usr/local/share/zoxide \
+        "${HOME}/.local/share/zoxide" \
+        "${HOME}/.local/bin/zoxide" \
         "$(command -v zoxide 2> /dev/null || true)"
 
     if command -v zoxide; then

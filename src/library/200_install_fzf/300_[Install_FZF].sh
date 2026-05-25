@@ -18,6 +18,7 @@ if [ "$FZF_USE_PKGMAN" = 'true' ]; then
     Plan::log.mod "Installing via ${WSE__DISTRIB} package manager"
     pkg_install fzf
     Plan::log.mod ' '
+    exit 0
 fi
 
 #
@@ -35,17 +36,6 @@ cp -r "$FZF_DL_PATH" "$install_path"
 # Now we can setup runtime config and completions
 Plan::log.mod 'Setting up completions'
 "${install_path}/fzf/install" --all
-
-# Plan::log.mod "Configuring shells: $WSE__SHELLS"
-# IFS=' ' read -ra shells <<< "$WSE__SHELLS"
-# for sh in "${shells[@]}"; do
-#     path="${HOME}/.shellrc.d/${sh}/300_fzf_completion.sh"
-#     printf 'export GOPATH="%s"\n' "$GOPATH" > "$path"
-#     printf 'export PATH="%s:%s:$PATH"\n' \
-#         "${GOLANG_INSTALL_DIR}/go/bin" \
-#         "${GOPATH}/bin" \
-#         >> "$path"
-# done
 
 Plan::log.mod 'Cleaning up'
 rm -rf "$FZF_DL_PATH"

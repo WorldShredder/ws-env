@@ -33,8 +33,9 @@ Plan::log.mod "Configuring shells: $WSE__SHELLS"
 IFS=' ' read -ra shells <<< "$WSE__SHELLS"
 for sh in "${shells[@]}"; do
     # Compatible with: sh/bash/zsh/ash/dash/pdksh
-    path="${HOME}/.shellrc.d/${sh}/110_rust_env.sh"
-    printf 'source "%s/.cargo/env"' "$HOME" > "$path"
+    name='110_rust_env.sh'
+    printf 'source "%s/.cargo/env"\n' "$HOME" \
+        > "${WSE__SHELLRCD}/${name}"
 done
 
 Plan::log.mod ' '

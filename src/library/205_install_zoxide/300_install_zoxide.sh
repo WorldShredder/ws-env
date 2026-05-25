@@ -30,18 +30,17 @@ fi
 Plan::log.mod "Configuring shells: $WSE__SHELLS"
 IFS=' ' read -ra shells <<< "$WSE__SHELLS"
 for sh in "${shells[@]}"; do
-    path="${HOME}/.shellrc.d/${sh}"
-
     if [ "$ZOXIDE_USE_PKGMAN" != 'true' ]; then
         name='300_zoxide_path.sh'
         printf '%s\n' \
             '! [[ "$PATH" == *"${HOME}/.local/bin"* ]] &&' \
             '    PATH="${HOME}/.local/bin:${PATH}"' \
-            > "${path}/${name}"
+            > "${WSE__SHELLRCD}/${name}"
     fi
 
     name='301_zoxide_init.sh'
-    printf '%s\n' "eval \"\$(zoxide init $sh)\"" > "${path}/${name}"
+    printf '%s\n' "eval \"\$(zoxide init $sh)\"" \
+        > "${WSE__SHELLRCD}/${name}"
 done
 
 Plan::log.mod ' '

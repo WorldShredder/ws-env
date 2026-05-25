@@ -29,12 +29,11 @@ fi
 Plan::log.mod "Configuring shells: $WSE__SHELLS"
 IFS=' ' read -ra shells <<< "$WSE__SHELLS"
 for sh in "${shells[@]}"; do
-    path="${HOME}/.shellrc.d/${sh}/100_golang_path.sh"
-    printf 'export GOPATH="%s"\n' "$GOPATH" > "$path"
-    printf 'export PATH="%s:%s:$PATH"\n' \
-        "${GOLANG_INSTALL_DIR}/go/bin" \
-        "${GOPATH}/bin" \
-        >> "$path"
+    name='100_golang_path.sh'
+    printf '%s\n' \
+        "export GOPATH='$GOPATH'" \
+        "export PATH=\"${GOLANG_INSTALL_DIR}/go/bin:${GOPATH}/bin:\$PATH\"" \
+        > "${WSE__SHELLRCD}/${name}"
 done
 
 Plan::log.mod ' '

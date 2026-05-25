@@ -307,7 +307,8 @@ export -f 'WSE::git_download'
 # Environment: Variables
 #
 
-export GITHUB_API_URL='https://api.github.com/repos'
+export WSE__GITHUB_API='https://api.github.com/repos'
+export WSE__SHELLRCD="${HOME}/.shellrc.d"
 
 #
 # Shell Runtime Config
@@ -315,14 +316,15 @@ export GITHUB_API_URL='https://api.github.com/repos'
 
 if [ -n "$WSE__SHELLS" ]; then
     Plan::log.debug "Configuring libraries for: $WSE__SHELLS"
-    mkdir -p "${HOME}/.shellrc.d" || exit 1
+    mkdir -p "$WSE__SHELLRCD" || exit 1
     IFS=' ' read -ra shells <<< "$WSE__SHELLS"
     for sh in "${shells[@]}"; do
-        mkdir -p "${HOME}/.shellrc.d/${sh}" || exit 1
         WSE::append_once 'shellrc' "${HOME}/.${sh}rc" \
-            "for f in '${HOME}/.shellrc.d/${sh}/'*;" \
-            'do [ -f "$f" ] && . "$f";' \
-            'done;' \
+            "for f in '${HOME}/.shellrc.d/'*; do " \
+            '[ -f "$f" ] && ' \
+            "[[ \"\$f\" =~ \\.(sh|${sh})\$ ]] && " \
+            'source "$f"; ' \
+            'done; ' \
             'unset f'
     done
 fi

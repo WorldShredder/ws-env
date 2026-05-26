@@ -24,8 +24,7 @@ done
 
 declare -A library
 for path in "${path_library}/"*; do
-    library_name="$(basename "$path")"
-    library_name="${library_name#*_install_}"
+    library_name="${path##*_install_}"
     library["${library_name%.*}"]="$path"
 done
 
@@ -38,10 +37,14 @@ modules will install everything. For dynamic installation see --lib.
 Installation is managed by the Planit framework.
 
 Options:
-  -l, --lib TARGETS
+  -l, --lib LIBRARY
               Comma-separated list of library modules to install. Each module
               will dynamically load its requirements for you. Omitting this
               option will lead to the installation of all modules.
+  -e, --exclude LIBRARY
+              Comma-separated list of library modules to exclude. This option
+              overrides --lib and may cause issues with libraries that depend
+              on excluded libraries. Use with caution.
   -s, --shell SHELL
               Comma-separated list of shells to configure. The installer will
               search for shell runtime configs (eg: .bashrc) and automatically
@@ -69,17 +72,23 @@ EOF
 add_library_target() {
     local target="$1"
     local target_path="${library["$target"]}"
+
     if ! [ -e "$target_path" ]; then
         Plan::log.error "Unknown library module '$target'"
         exit 1
     fi
-    if [ -z "${library_targets["$target"]}" ]; then
-        Plan::log.debug "Adding library module '$target'"
-        library_targets["$target"]="$target_path"
-    else
+
+    if [[ " ${exclude_targets[*]} " = *" $target "* ]]; then
+        Plan::log.debug "Excluding library module '$target'"
+        return 0
+    elif [ -n "${library_targets[$target]}" ]; then
         Plan::log.debug "Skipping library module '$target' (duplicate)"
         return 0
     fi
+
+    Plan::log.debug "Adding library module '$target'"
+    library_targets["$target"]="$target_path"
+
     local -a required
     local req
     if [ -f "${target_path}/require.conf" ]; then
@@ -95,20 +104,25 @@ export WSE__SHELLS
 force_root='false'
 no_library='false'
 declare -a valid_shells=('bash' 'zsh')
+declare -a exclude_targets
 declare -A library_targets
+declare -a _library_targets
 
 while :; do
     case "$1" in
         --force-root) force_root='true' ;;
         -l | --lib)
-            IFS=, read -ra targets <<< "$2"
-            for target in "${targets[@]}"; do
-                add_library_target "$target"
-            done
-            if [ -z "${library_targets[*]}" ]; then
+            if [ -z "${2// /}" ]; then
                 Plan::log.info 'Installing core modules only'
                 no_library='true'
+                continue
             fi
+            IFS=, read -ra _library_targets <<< "$2"
+            shift
+            ;;
+        -e | --exclude)
+            IFS=, read -ra exclude_targets <<< "$2"
+            Plan::log.info "Excluding modules: ${exclude_targets[*]}"
             shift
             ;;
         -s | --shell)
@@ -136,6 +150,16 @@ while :; do
     esac
     shift
 done
+
+for target in "${_library_targets[@]}"; do
+    add_library_target "$target"
+done
+
+if [ "${#library_targets[@]}" -gt 0 ]; then
+    Plan::log.info "Installing libraries: ${!library_targets[*]}"
+elif [ "$no_library" != 'true' ]; then
+    Plan::log.info 'Installing libraries: all'
+fi
 
 #
 # Exit Handling
@@ -230,7 +254,8 @@ for path in "${modules[@]}"; do
 done
 
 if [ "${#library_targets[@]}" -gt 0 ]; then
-    for path in "${library_targets[@]}"; do
+    for target in "${!library_targets[@]}"; do
+        path="${library_targets[$target]}"
         ln -s "$path" "${module_cache}/${path##*/}" || {
             Plan::log.error "Failed to cache library module '$path'"
             exit 1
@@ -239,6 +264,12 @@ if [ "${#library_targets[@]}" -gt 0 ]; then
     done
 elif [ "$no_library" != 'true' ]; then
     for path in "${library[@]}"; do
+        # check is required if --lib was not used (add all libs)
+        target="${path##*_install_}"
+        if [[ " ${exclude_targets[*]} " = *" $target "* ]]; then
+            Plan::log.debug "Excluding library module '$target'"
+            continue
+        fi
         ln -s "$path" "${module_cache}/${path##*/}" || {
             Plan::log.error "Failed to cache library module '$path'"
             exit

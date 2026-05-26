@@ -17,19 +17,32 @@ if [ "$RUST_USE_PKGMAN" = 'true' ]; then
     exit 0
 fi
 
+#
+# Download Installer
+#
+
 Plan::log.mod 'Downloading Rustup script'
 curl --proto '=https' --tlsv1.2 -f https://sh.rustup.rs \
     > "${PLAN__PATH_CACHE}/rustup"
+
+#
+# Install Package
+#
 
 Plan::log.mod 'Installing Rust via Rustup'
 IFS=' ' read -ra args <<< "$RUST_RUSTUP_ARGS"
 sh "${PLAN__PATH_CACHE}/rustup" -y --no-modify-path "${args[@]}"
 
 Plan::log.mod 'Verifying install'
+source "${HOME}/.cargo/env"
+cargo --version
+
 # Make cargo available to other modules that need it
 Plan::vcache.add -s global CARGO_ENV_PATH "${HOME}/.cargo/env"
-source "$CARGO_ENV_PATH"
-cargo --version
+
+#
+# Configure Shell
+#
 
 Plan::log.mod "Configuring shells: $WSE__SHELLS"
 IFS=' ' read -ra shells <<< "$WSE__SHELLS"

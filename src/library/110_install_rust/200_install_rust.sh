@@ -34,11 +34,8 @@ IFS=' ' read -ra args <<< "$RUST_RUSTUP_ARGS"
 sh "${PLAN__PATH_CACHE}/rustup" -y --no-modify-path "${args[@]}"
 
 Plan::log.mod 'Verifying install'
-source "${HOME}/.cargo/env"
+Plan::vcache.add -e global PATH "${HOME}/.cargo/bin:${PATH}"
 cargo --version
-
-# Make cargo available to other modules that need it
-Plan::vcache.add -s global CARGO_ENV_PATH "${HOME}/.cargo/env"
 
 #
 # Configure Shell
@@ -49,8 +46,7 @@ IFS=' ' read -ra shells <<< "$WSE__SHELLS"
 for sh in "${shells[@]}"; do
     # Compatible with: sh/bash/zsh/ash/dash/pdksh
     name='110_rust_env.sh'
-    printf 'source "%s"\n' "$CARGO_ENV_PATH" \
-        > "${WSE__SHELLRCD}/${name}"
+    printf 'source "%s"\n' "${HOME}/.cargo/env" > "${WSE__SHELLRCD}/${name}"
 done
 
 Plan::log.mod ' '

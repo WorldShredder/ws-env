@@ -19,8 +19,6 @@ if [ "$EZA_USE_PKGMAN" = 'true' ]; then
     pkg_install eza
 else
     Plan::log.mod "Installing via cargo"
-    command -v cargo || source "$CARGO_ENV_PATH"
-
     cd "$EZA_DL_PATH"
     cargo install --path .
 

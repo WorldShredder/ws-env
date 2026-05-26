@@ -65,7 +65,7 @@ if [ "$EZA_PURGE" = 'true' ]; then
     pkg_remove eza || true
 
     if [ "$EZA_USE_PKGMAN" != 'true' ]; then
-        if ! command -v cargo && ! source "${CARGO_ENV_PATH}"; then
+        if ! command -v cargo; then
             Plan::log.mod -c 1 "Require 'cargo' (command not found)"
             exit 1
         fi

@@ -47,6 +47,11 @@ if [ "$WSE__DISTRIB" = 'fedora' ] && [ "$EZA_USE_PKGMAN" = 'true' ]; then
     EZA_USE_PKGMAN='false'
 fi
 
+if [ "$EZA_USE_PKGMAN" != 'true' ] && ! command -v cargo; then
+    Plan::log.mod -c 1 "Require 'cargo' (command not found)"
+    exit 1
+fi
+
 #
 # Environment
 #
@@ -62,15 +67,9 @@ Plan::vcache.add local EZA_EXTRAS "$EZA_EXTRAS"
 
 if [ "$EZA_PURGE" = 'true' ]; then
     Plan::log.mod 'Purging Eza'
-    pkg_remove eza || true
 
-    if [ "$EZA_USE_PKGMAN" != 'true' ]; then
-        if ! command -v cargo; then
-            Plan::log.mod -c 1 "Require 'cargo' (command not found)"
-            exit 1
-        fi
-        cargo uninstall eza || true
-    fi
+    pkg_remove eza || true
+    cargo uninstall eza || true
 
     sudo rm -rf \
         /usr/bin/eza \

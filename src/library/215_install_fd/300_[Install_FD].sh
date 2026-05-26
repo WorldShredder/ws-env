@@ -18,8 +18,8 @@ if [ "$FD_USE_PKGMAN" = 'true' ]; then
     Plan::log.mod "Installing via ${WSE__DISTRIB} package manager"
     pkg_install fd-find
     if ! command -v fd && command -v fdfind; then
-        mkdir -p /usr/local/bin
-        ln -s "$(command -v fdfind 2> /dev/null)" /usr/local/bin/fd
+        sudo mkdir -p /usr/local/bin
+        sudo ln -s "$(command -v fdfind 2> /dev/null)" /usr/local/bin/fd
     fi
 else
     Plan::log.mod "Installing via cargo"

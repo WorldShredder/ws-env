@@ -42,6 +42,11 @@ if [ -n "$FD_COMMIT" ] && ! [[ "$FD_COMMIT" =~ ^[a-f0-9]+$ ]]; then
     exit 1
 fi
 
+if [ "$FD_USE_PKGMAN" != 'true' ] && ! command -v cargo; then
+    Plan::log.mod -c 1 "Require 'cargo' (command not found)"
+    exit 1
+fi
+
 #
 # Environment
 #
@@ -62,20 +67,15 @@ esac
 
 if [ "$FD_PURGE" = 'true' ]; then
     Plan::log.mod 'Purging FD'
-    pkg_remove fd-find || true
 
-    if [ "$FD_USE_PKGMAN" != 'true' ]; then
-        if ! command -v cargo; then
-            Plan::log.mod -c 1 "Require 'cargo' (command not found)"
-            exit 1
-        fi
-        cargo uninstall fd-find || true
-    fi
+    pkg_remove fd-find || true
+    cargo uninstall fd-find || true
 
     sudo rm -rf \
         "/usr/bin/${bin_name}" \
         "${HOME}/.local/share/${bin_name}" \
         "${HOME}/.local/bin/${bin_name}" \
+        "${HOME}/.cargo/bin/fd" \
         "$(command -v "${bin_name}" 2> /dev/null || true)"
 
     if command -v "$bin_name"; then

@@ -43,9 +43,18 @@ if [ -n "$EZA_COMMIT" ] && ! [[ "$EZA_COMMIT" =~ ^[a-f0-9]+$ ]]; then
 fi
 
 if [ "$WSE__DISTRIB" = 'fedora' ] && [ "$EZA_USE_PKGMAN" = 'true' ]; then
-    Plan::log.mod -c 3 -d 2 'Warn: Eza not in fedora repos (using fallback)'
+    Plan::log.mod -c 3 -d 2 'Warn: Eza not in repos (using fallback)'
     EZA_USE_PKGMAN='false'
 fi
+
+#
+# Environment
+#
+
+Plan::vcache.add local EZA_TAG "$EZA_TAG"
+Plan::vcache.add local EZA_COMMIT "$EZA_COMMIT"
+Plan::vcache.add local EZA_USE_PKGMAN "$EZA_USE_PKGMAN"
+Plan::vcache.add local EZA_EXTRAS "$EZA_EXTRAS"
 
 #
 # Remove Install
@@ -83,14 +92,5 @@ if command -v eza; then
     Plan::vcache.add local EZA_SKIP_INSTALL true
     exit 0
 fi
-
-#
-# Environment
-#
-
-Plan::vcache.add local EZA_TAG "$EZA_TAG"
-Plan::vcache.add local EZA_COMMIT "$EZA_COMMIT"
-Plan::vcache.add local EZA_USE_PKGMAN "$EZA_USE_PKGMAN"
-Plan::vcache.add local EZA_EXTRAS "$EZA_EXTRAS"
 
 Plan::log.mod ' '

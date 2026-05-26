@@ -20,7 +20,6 @@ if [ "$ZOXIDE_USE_PKGMAN" = 'true' ]; then
 else
     Plan::log.mod 'Running Zoxide install script'
     cd "$ZOXIDE_DL_PATH"
-    rm -rf ./.git
     ./install.sh
 
     Plan::log.mod 'Cleaning up'

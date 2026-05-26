@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# shellcheck disable=SC2034,SC2016
+# shellcheck disable=SC2034,SC2016,SC1090
 
 set -eo pipefail
 trap 'exit $?' ERR
@@ -26,7 +26,9 @@ IFS=' ' read -ra args <<< "$RUST_RUSTUP_ARGS"
 sh "${PLAN__PATH_CACHE}/rustup" -y --no-modify-path "${args[@]}"
 
 Plan::log.mod 'Verifying install'
-source "${HOME}/.cargo/env"
+# Make cargo available to other modules that need it
+Plan::vcache.add -s global CARGO_ENV_PATH "${HOME}/.cargo/env"
+source "$CARGO_ENV_PATH"
 cargo --version
 
 Plan::log.mod "Configuring shells: $WSE__SHELLS"
@@ -34,7 +36,7 @@ IFS=' ' read -ra shells <<< "$WSE__SHELLS"
 for sh in "${shells[@]}"; do
     # Compatible with: sh/bash/zsh/ash/dash/pdksh
     name='110_rust_env.sh'
-    printf 'source "%s/.cargo/env"\n' "$HOME" \
+    printf 'source "%s"\n' "$CARGO_ENV_PATH" \
         > "${WSE__SHELLRCD}/${name}"
 done
 

@@ -22,7 +22,7 @@ if [ "$FD_USE_PKGMAN" = 'true' ]; then
         sudo ln -s "$(command -v fdfind 2> /dev/null)" /usr/local/bin/fd
     fi
 else
-    Plan::log.mod "Installing via cargo"
+    Plan::log.mod "Build/install via cargo"
     cd "$FD_DL_PATH"
     cargo install --path .
 

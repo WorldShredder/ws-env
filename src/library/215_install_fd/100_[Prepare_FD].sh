@@ -73,6 +73,8 @@ if [ "$FD_PURGE" = 'true' ]; then
 
     sudo rm -rf \
         "/usr/bin/${bin_name}" \
+        "/usr/local/bin/${bin_name}" \
+        '/usr/local/bin/fd' \
         "${HOME}/.local/share/${bin_name}" \
         "${HOME}/.local/bin/${bin_name}" \
         "${HOME}/.cargo/bin/fd" \

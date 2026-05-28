@@ -50,10 +50,10 @@ source "${pwd}/scripts/helpers.sh"
 #
 
 if [ "$NF_LIST" = 'true' ]; then
-    Plan::log.mod 'Fetching font list'
+    Plan::log.mod "Fetching '${NF_TAG:-latest}' font list"
     font_list="$(nf_list_fonts)"
 
-    Plan::log.mod 'Viewing font list'
+    Plan::log.mod 'Nav: [j] Down [k] Up [q]uit'
     exec 5> /dev/tty
     less >&5 <<< "$font_list" || {
         Plan::log.mod -c 1 'Failed to fetch font list'

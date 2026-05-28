@@ -37,7 +37,7 @@ nf_extract_font() {
     local order="${3:-ttf otf}"
 
     for ftype in $order; do
-        user_tar -xJf "$src" -C "$dest" --wildcards "*.$ftype" || continue
+        tar -xJf "$src" -C "$dest" --wildcards "*.$ftype" || continue
         printf '%s' "$ftype"
         return
     done
@@ -69,7 +69,7 @@ nf_install_font() {
         && preference='otf ttf'
 
     Plan::log.mod "Downloading font '$font_name'"
-    user_curl -fsSL "$location" -o "$font_archive"
+    curl -fsSL "$location" -o "$font_archive"
 
     Plan::log.mod "Extracting font '$font_name'"
     local font_type

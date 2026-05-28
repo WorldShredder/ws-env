@@ -50,8 +50,12 @@ source "${pwd}/scripts/helpers.sh"
 #
 
 if [ "$NF_LIST" = 'true' ]; then
+    Plan::log.mod 'Fetching font list'
+    font_list="$(nf_list_fonts)"
+
+    Plan::log.mod 'Viewing font list'
     exec 5> /dev/tty
-    less >&5 <<< "$(nf_list_fonts)" || {
+    less >&5 <<< "$font_list" || {
         Plan::log.mod -c 1 'Failed to fetch font list'
         exec 5>&-
         exit 1
@@ -63,6 +67,12 @@ fi
 #
 # Environment
 #
+
+if [ -z "$NF_FONTS" ]; then
+    Plan::vcache.add local NF_SKIP_INSTALL true
+    Plan::log.mod 'Skipping'
+    exit 0
+fi
 
 Plan::vcache.add local NF_TAG "$NF_TAG"
 Plan::vcache.add local NF_COMMIT "$NF_COMMIT"

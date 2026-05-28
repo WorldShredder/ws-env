@@ -84,14 +84,15 @@ nf_install_font() {
 }
 
 nf_install_fonts() {
-    local font_data="$1"
-    local fonts="$2"
+    local fonts="$1"
+    local font_data="$2"
     if [ -z "$font_data" ]; then
         Plan::log.mod 'Fetching Nerdfont metadata'
         font_data="$(nf_get_fonts)"
     fi
-    local font_name
-    while read -rd ',' font_name; do
-        nf_install_font "$font_name" "$font_data"
-    done <<< "${fonts},"
+    local font
+    IFS=, read -ra fonts <<< "$fonts"
+    for font in "${fonts[@]}"; do
+        nf_install_font "$font" "$font_data"
+    done
 }

@@ -17,12 +17,14 @@ fi
 Plan::vcache.add -s local TMUX_DL_PATH "${PLAN__PATH_CACHE}/tmux"
 rm -rf "$TMUX_DL_PATH"
 
+repo_name='tmux/tmux'
+
 if [ -n "$TMUX_TAG" ]; then
     Plan::log.mod "Downloading from tag '$TMUX_TAG'"
-    WSE::git_download 'tmux/tmux' -t "$TMUX_TAG" -o "$TMUX_DL_PATH"
+    WSE::git_download "$repo_name" -t "$TMUX_TAG" -o "$TMUX_DL_PATH"
 else
     Plan::log.mod "Downloading commit '${TMUX_COMMIT:-latest}'"
-    WSE::git_download 'tmux/tmux' -c "$TMUX_COMMIT" -o "$TMUX_DL_PATH"
+    WSE::git_download "$repo_name" -c "$TMUX_COMMIT" -o "$TMUX_DL_PATH"
 fi
 
 Plan::log.mod ' '

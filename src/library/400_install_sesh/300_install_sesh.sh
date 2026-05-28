@@ -16,7 +16,7 @@ fi
 
 if [ "$SESH_USE_PKGMAN" = 'true' ]; then
     Plan::log.mod "Installing via Go"
-    go install sesh
+    go install github.com/joshmedeski/sesh/v2@latest
 else
     Plan::log.mod "Build/install via Go"
     cd "$SESH_DL_PATH"

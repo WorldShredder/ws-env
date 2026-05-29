@@ -52,16 +52,20 @@ nf_install_font() {
         font_data="$(nf_get_fonts)"
     fi
 
-    Plan::log.mod "Fetching URL for font '$font_name'"
+    Plan::log.mod "Fetching location of font '$font_name'"
     local location
-    location="$(nf_get_location "$font_name" "$font_data")"
+    location="$(nf_get_location "$font_name" "$font_data")" || {
+        Plan::log.mod -c 1 \
+            "Font '$font_name' doesn't exist or Github API rate limit reached"
+        exit 1
+    }
 
     local nf_cache="${PLAN__PATH_CACHE}/nf-cache"
     mkdir -p "$nf_cache"
 
     local system_fonts='/usr/share/fonts'
     local font_archive="${nf_cache}/${font_name}.tar.xz"
-    local nf_data="${nf_cache}/font_data"
+    local nf_data="${nf_cache}/font_data/${font_name}"
     mkdir -p "$nf_data"
 
     local preference='ttf otf'
@@ -69,18 +73,20 @@ nf_install_font() {
         && preference='otf ttf'
 
     Plan::log.mod "Downloading font '$font_name'"
-    curl -fsSL "$location" -o "$font_archive"
+    curl -fL "$location" -o "$font_archive"
 
     Plan::log.mod "Extracting font '$font_name'"
     local font_type
     font_type="$(nf_extract_font "$font_archive" "$nf_data" "$preference")"
 
     Plan::log.mod "Installing font '$font_name' (${font_type})"
-    local install_path="${system_fonts}/truetype/${font_name}"
-    [ "$font_type" == 'otf' ] \
-        && install_path="${system_fonts}/opentype/${font_name}"
-    sudo mkdir -p "$install_path"
-    sudo cp "$nf_data"/*."$font_type" "$install_path"
+    local install_path="${system_fonts}/truetype"
+    [ "$font_type" = 'otf' ] \
+        && install_path="${system_fonts}/opentype"
+    sudo cp -ru "$nf_data" "$install_path"
+
+    Plan::log.mod "Cleaning cache"
+    rm -r "$nf_data" "$font_archive"
 }
 
 nf_install_fonts() {

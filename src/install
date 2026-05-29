@@ -24,8 +24,12 @@ done
 
 declare -A library
 for path in "${path_library}/"*; do
-    library_name="${path##*_install_}"
-    library["${library_name%.*}"]="$path"
+    # Expects: 100_install_libname.sh, 100_[Install_LibName].sh, 100_[Install_LibName]
+    library_name="${path##*_}"
+    [[ "${path##*/}" = *\[*\]* ]] \
+        && library_name="${library_name%%\]*}" \
+        || library_name="${library_name%.*}"
+    library["${library_name,,}"]="$path"
 done
 
 print_help() {

@@ -6,17 +6,12 @@ set -eo pipefail
 trap 'exit $?' ERR
 
 NF_TAG=''
-NF_COMMIT=''
 NF_LIST='false'
 
 while [ $# -gt 0 ]; do
     case "$1" in
         --nf-tag)
             NF_TAG="$2"
-            shift
-            ;;
-        --nf-commit)
-            NF_COMMIT="$2"
             shift
             ;;
         --nf-fonts)
@@ -36,11 +31,6 @@ while [ $# -gt 0 ]; do
     esac
     shift
 done
-
-if [ -n "$NF_COMMIT" ] && ! [[ "$NF_COMMIT" =~ ^[a-f0-9]+$ ]]; then
-    Plan::log.mod -c 1 "Invalid commit ID '$NF_COMMIT'"
-    exit 1
-fi
 
 pwd="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${pwd}/scripts/helpers.sh"
@@ -75,7 +65,6 @@ if [ -z "$NF_FONTS" ]; then
 fi
 
 Plan::vcache.add local NF_TAG "$NF_TAG"
-Plan::vcache.add local NF_COMMIT "$NF_COMMIT"
 Plan::vcache.add local NF_FONTS "$NF_FONTS"
 Plan::vcache.add local NF_OTF "$NF_OTF"
 

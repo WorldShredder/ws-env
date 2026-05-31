@@ -73,40 +73,11 @@ EOF
 # Parse Options
 #
 
-add_library_target() {
-    local target="$1"
-    local target_path="${library["$target"]}"
-
-    if ! [ -e "$target_path" ]; then
-        Plan::log.error "Unknown library module '$target'"
-        exit 1
-    fi
-
-    if [[ " ${exclude_targets[*]} " = *" $target "* ]]; then
-        Plan::log.debug "Excluding library module '$target'"
-        return 0
-    elif [ -n "${library_targets[$target]}" ]; then
-        Plan::log.debug "Skipping library module '$target' (duplicate)"
-        return 0
-    fi
-
-    Plan::log.debug "Adding library module '$target'"
-    library_targets["$target"]="$target_path"
-
-    local -a required
-    local req
-    if [ -f "${target_path}/require.conf" ]; then
-        read -d ' ' -ra required < <(cat "${target_path}/require.conf")
-        for req in "${required[@]}"; do
-            Plan::log.debug "Library module '$target' requires '$req'"
-            add_library_target "$req"
-        done
-    fi
-}
-
 export WSE__SHELLS
 force_root='false'
 no_library='false'
+skip_all_required='false'
+declare -a skip_required
 declare -a valid_shells=('bash' 'zsh')
 declare -a exclude_targets
 declare -A library_targets
@@ -143,6 +114,12 @@ while :; do
             WSE__SHELLS="${shell_targets[*]}"
             shift
             ;;
+        -R | --skip-required)
+            IFS=, read -ra skip_required <<< "$2"
+            if [[ " ${skip_required[*]} " = *' all '* ]]; then
+                skip_all_required='true'
+            fi
+            ;;
         -h | --help)
             print_help
             exit 0
@@ -155,6 +132,41 @@ while :; do
     esac
     shift
 done
+
+add_library_target() {
+    local target="$1"
+    local target_path="${library["$target"]}"
+
+    if ! [ -e "$target_path" ]; then
+        Plan::log.error "Unknown library module '$target'"
+        exit 1
+    fi
+
+    if [[ " ${exclude_targets[*]} " = *" $target "* ]]; then
+        Plan::log.debug "Excluding library module '$target'"
+        return 0
+    elif [ -n "${library_targets[$target]}" ]; then
+        Plan::log.debug "Skipping library module '$target' (duplicate)"
+        return 0
+    fi
+
+    Plan::log.debug "Adding library module '$target'"
+    library_targets["$target"]="$target_path"
+
+    local -a required
+    local req
+    if [ -f "${target_path}/require.conf" ]; then
+        read -d ' ' -ra required < <(cat "${target_path}/require.conf")
+        if [ "$skip_all_required" = 'true' ] || [[ " ${skip_required[*]} " = *" $target "* ]]; then
+            Plan::log.debug "Skipping '$target' dependencies: ${required[*]}"
+            return 0
+        fi
+        for req in "${required[@]}"; do
+            Plan::log.debug "Library module '$target' requires '$req'"
+            add_library_target "$req"
+        done
+    fi
+}
 
 for target in "${_library_targets[@]}"; do
     add_library_target "$target"

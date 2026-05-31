@@ -160,11 +160,13 @@ for target in "${_library_targets[@]}"; do
     add_library_target "$target"
 done
 
-if [ "${#library_targets[@]}" -gt 0 ]; then
-    Plan::log.info "Installing libraries: ${!library_targets[*]}"
-elif [ "$no_library" != 'true' ]; then
-    Plan::log.info 'Installing libraries: all'
+if [ "${#library_targets[@]}" = '0' ] && [ "$no_library" != 'true' ]; then
+    for target in "${!library[@]}"; do
+        add_library_target "$target"
+    done
 fi
+
+Plan::log.info "Installing libraries: ${!library_targets[*]}"
 
 #
 # Exit Handling
@@ -173,9 +175,19 @@ fi
 # We need to set the trap here before setting up caches and background procs.
 # Also init the authentication process ID as this process (changed below).
 
-auth_pid="$$"
-trap 'Plan::log.debug "Cleaning up \"$module_cache\""; rm -rf "$module_cache"; kill -KILL "$auth_pid" 2>/dev/null' \
-    EXIT INT TERM HUP QUIT
+declare WSE__AUTH_PID
+
+exit_handler() {
+    Plan::log.debug "Cleaning up '$module_cache'"
+    rm -rf "$module_cache"
+    kill -KILL "${WSE__AUTH_PID:-$$}" 2> /dev/null
+}
+
+trap 'exit_handler' EXIT INT TERM HUP QUIT
+
+# auth_pid="$$"
+# trap 'Plan::log.debug "Cleaning up \"$module_cache\""; rm -rf "$module_cache"; kill -KILL "$auth_pid" 2>/dev/null' \
+#     EXIT INT TERM HUP QUIT
 
 #
 # Root Authentication
@@ -197,8 +209,8 @@ while :; do
     sleep 15
 done &
 
-auth_pid="$!"
-Plan::log.debug "Sudo authentication process: $auth_pid"
+WSE__AUTH_PID="$!"
+Plan::log.debug "Sudo authentication process: $WSE__AUTH_PID"
 
 #
 # Distribution
@@ -264,20 +276,6 @@ if [ "${#library_targets[@]}" -gt 0 ]; then
         ln -s "$path" "${module_cache}/${path##*/}" || {
             Plan::log.error "Failed to cache library module '$path'"
             exit 1
-        }
-        Plan::log.debug "Library module cached '$path'"
-    done
-elif [ "$no_library" != 'true' ]; then
-    for path in "${library[@]}"; do
-        # check is required if --lib was not used (add all libs)
-        target="${path##*_install_}"
-        if [[ " ${exclude_targets[*]} " = *" $target "* ]]; then
-            Plan::log.debug "Excluding library module '$target'"
-            continue
-        fi
-        ln -s "$path" "${module_cache}/${path##*/}" || {
-            Plan::log.error "Failed to cache library module '$path'"
-            exit
         }
         Plan::log.debug "Library module cached '$path'"
     done

@@ -60,10 +60,10 @@ Plan::vcache.add local FD_EXTRAS "$FD_EXTRAS"
 # Remove Install
 #
 
-case "$WSE__DISTRIB" in
-    debian) bin_name='fdfind' ;;
-    fedora) bin_name='fd' ;;
-esac
+bin_name='fd'
+if [ "$FD_USE_PKGMAN" = 'true' ] && [ "$WSE__DISTRIB" = 'debian' ]; then
+    bin_name='fdfind'
+fi
 
 if [ "$FD_PURGE" = 'true' ]; then
     Plan::log.mod 'Purging FD'

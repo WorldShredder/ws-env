@@ -45,10 +45,14 @@ Options:
               Comma-separated list of library modules to install. Each module
               will dynamically load its requirements for you. Omitting this
               option will lead to the installation of all modules.
-  -e, --exclude LIBRARY
+  -L, --exclude LIBRARY
               Comma-separated list of library modules to exclude. This option
               overrides --lib and may cause issues with libraries that depend
               on excluded libraries. Use with caution.
+  -R, --skip-required LIBRARY
+              Comma-separated list of library modules to install without their
+              dependencies. This will also prevent dependency chaining if
+              LIBRARY itself was included as a dependency for another library.
   -s, --shell SHELL
               Comma-separated list of shells to configure. The installer will
               search for shell runtime configs (eg: .bashrc) and automatically
@@ -96,10 +100,16 @@ while :; do
             IFS=, read -ra _library_targets <<< "$2"
             shift
             ;;
-        -e | --exclude)
+        -L | --exclude)
             IFS=, read -ra exclude_targets <<< "$2"
             Plan::log.info "Excluding modules: ${exclude_targets[*]}"
             shift
+            ;;
+        -R | --skip-required)
+            IFS=, read -ra skip_required <<< "$2"
+            if [[ " ${skip_required[*]} " = *' all '* ]]; then
+                skip_all_required='true'
+            fi
             ;;
         -s | --shell)
             declare -a shell_targets
@@ -113,12 +123,6 @@ while :; do
             done
             WSE__SHELLS="${shell_targets[*]}"
             shift
-            ;;
-        -R | --skip-required)
-            IFS=, read -ra skip_required <<< "$2"
-            if [[ " ${skip_required[*]} " = *' all '* ]]; then
-                skip_all_required='true'
-            fi
             ;;
         -h | --help)
             print_help

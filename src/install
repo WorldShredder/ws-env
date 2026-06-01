@@ -3,6 +3,28 @@
 WSE__VERSION='0.1.0'
 
 #
+# Logging Level
+#
+
+set_log_level() {
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            --level)
+                export PLAN__LOGGING_LEVEL="$2"
+                export PLAN__LOGGING_CALLER_LEVEL="$2"
+                shift
+                ;;
+            -V | --verbose)
+                export PLAN__LOGGING_LEVEL='DEBUG'
+                export PLAN__LOGGING_CALLER_LEVEL='DEBUG'
+                ;;
+        esac
+        shift
+    done
+}
+set_log_level "$@"
+
+#
 # Planit Utils & Preconfig
 #
 
@@ -62,6 +84,17 @@ Options:
       --force-root
               Force installation as user 'root'. This is generally recommended
               against and may lead to an unstable install.
+      --dry-run
+              Perform a dry run install. This will perform all steps, including
+              cache creation, but exit before calling Planit. Use this option
+              to test different configurations before performing a full install.
+      --level LOG_LEVEL
+              Sets Planit's log level to LOG_LEVEL. Available levels are: ERROR
+              WARN, INFO, DEBUG, NONE.
+  -V, --verbose
+              Enables installer and Planit debug messages. Equivalent setting
+              --level to 'DEBUG'. Use with --dry-run to better map out your
+              configuration.
   -v, --version
               Print WS-Env version.
   -h, --help  Print this help message.
@@ -78,6 +111,7 @@ EOF
 #
 
 export WSE__SHELLS
+dry_run='false'
 force_root='false'
 no_library='false'
 skip_all_required='false'
@@ -123,6 +157,15 @@ while :; do
             done
             WSE__SHELLS="${shell_targets[*]}"
             shift
+            ;;
+        --dry-run)
+            dry_run='true'
+            ;;
+        --level) shift ;;    # handled at top
+        -V | --verbose) : ;; # handled at top
+        -v | --version)
+            printf '%s\n' "$WSE__VERSION"
+            exit 0
             ;;
         -h | --help)
             print_help
@@ -182,7 +225,8 @@ if [ "${#library_targets[@]}" = '0' ] && [ "$no_library" != 'true' ]; then
     done
 fi
 
-Plan::log.info "Installing libraries: ${!library_targets[*]}"
+[ "${#library_targets[@]}" -gt 0 ] \
+    && Plan::log.info "Installing libraries: ${!library_targets[*]}"
 
 #
 # Exit Handling
@@ -383,4 +427,5 @@ fi
 # Run Installer
 #
 
-"${pwd}/planit/planit" -m "${module_cache}" -- "$@"
+[ "$dry_run" != 'true' ] \
+    && "${pwd}/planit/planit" -m "${module_cache}" -- "$@"

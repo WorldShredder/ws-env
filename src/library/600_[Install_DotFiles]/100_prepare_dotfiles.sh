@@ -7,6 +7,7 @@ trap 'exit $?' ERR
 
 DOTFILES_TAG=''
 DOTFILES_COMMIT=''
+DOTFILES_LIBRARY=''
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -18,8 +19,13 @@ while [ $# -gt 0 ]; do
             DOTFILES_COMMIT="$2"
             shift
             ;;
-        --dotfiles-purge | --purge)
-            DOTFILES_PURGE='true'
+        --dotfiles-lib)
+            if [ -z "${2// /}" ]; then
+                Plan::log.mod -c 1 '--dotfiles-lib value cannot be empty'
+                exit 1
+            fi
+            DOTFILES_LIBRARY="$2"
+            shift
             ;;
         --dotfiles-*)
             Plan::log.mod -c 1 "Invalid option '$1'"
@@ -35,9 +41,36 @@ if [ -n "$DOTFILES_COMMIT" ] && ! [[ "$DOTFILES_COMMIT" =~ ^[a-f0-9]+$ ]]; then
 fi
 
 #
-# Remove Install
+# Scan Repo Library
 #
 
-if [ "$DOTFILES_PURGE" = 'true' ]; then
-    Plan::log.mod 'Purging DotFiles'
+# check dotfiles lib/ dir before continuing
+if [ -n "$DOTFILES_LIBRARY" ]; then
+    Plan::log.mod "Scanning repo for: $DOTFILES_LIBRARY"
+    IFS=, read -ra library_targets <<< "$DOTFILES_LIBRARY"
+
+    api_url="${WSE__GITHUB_API}/worldshredder/dotfiles/contents/lib/"
+    [ -z "${DOTFILES_TAG:-"${DOTFILES_COMMIT}"}" ] \
+        && api_url+="?ref=${DOTFILES_TAG:-"${DOTFILES_COMMIT}"}"
+
+    read -ra library <<< "$(
+        curl -fs "$api_url" | jq -r '.[] | select(.type == "dir") | .name'
+    )"
+
+    for lib in "${library_targets[@]}"; do
+        if [[ " ${library[*]} " != *" $lib "* ]]; then
+            Plan::log.mod -c 1 "Lib '$lib' not in: ${library[*]}"
+            exit 1
+        fi
+    done
 fi
+
+#
+# Environment
+#
+
+Plan::vcache.add local DOTFILES_TAG "$DOTFILES_TAG"
+Plan::vcache.add local DOTFILES_COMMIT "$DOTFILES_COMMIT"
+Plan::vcache.add local DOTFILES_LIBRARY "$DOTFILES_LIBRARY"
+
+Plan::log.mod ''

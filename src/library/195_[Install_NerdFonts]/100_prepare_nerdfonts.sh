@@ -10,21 +10,21 @@ NF_LIST='false'
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        --nf-tag)
+        --nerdfonts-tag)
             NF_TAG="$2"
             shift
             ;;
-        --nf-fonts)
+        --nerdfonts-fonts)
             NF_FONTS="$2"
             shift
             ;;
-        --nf-otf)
+        --nerdfonts-otf)
             NF_OTF='true'
             ;;
-        --nf-list)
+        --nerdfonts-list)
             NF_LIST='true'
             ;;
-        --nf-*)
+        --nerdfonts-*)
             Plan::log.mod -c 1 "Invalid option '$1'"
             exit 1
             ;;

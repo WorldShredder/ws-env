@@ -53,9 +53,12 @@ if [ -n "$DOTFILES_LIBRARY" ]; then
     [ -n "${DOTFILES_TAG:-"${DOTFILES_COMMIT}"}" ] \
         && api_url+="/?ref=${DOTFILES_TAG:-"${DOTFILES_COMMIT}"}"
 
-    read -ra library <<< "$(
-        curl -fsL "$api_url" | jq -r '.[] | select(.type == "dir") | .name'
-    )"
+    query='.[] | select(.type == "dir") | .name'
+    api_out="$(curl -fsL "$api_url" | jq -r "$query")" || {
+        Plan::log.mod -c 1 'Failed to scan repo'
+        exit 1
+    }
+    read -d '\n' -ra library <<< "${api_out}\\n"
 
     for lib in "${library_targets[@]}"; do
         if [[ " ${library[*]} " != *" $lib "* ]]; then

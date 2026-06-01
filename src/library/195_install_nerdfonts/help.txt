@@ -1,0 +1,11 @@
+Options:
+  --nerdfonts-tag TAG
+                    Git tag to fetch fonts from. TAG must be version 0.8.0 or
+                    greater. Defaults to the latest version.
+  --nerdfonts-fonts FONTS
+                    Comma-separated list of fonts to install. If FONTS is an
+                    empty string, installation is skipped. If this option is not
+                    given, UbuntuMono is installed only. See --nerdfonts-list.
+  --nerdfonts-otf   Install OTF fonts if available, otherwise install TTF.
+  --nerdfonts-list  List all available fonts. If --nerdfonts-tag is given, fetch
+                    font list from TAG.

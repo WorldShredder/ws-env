@@ -1,0 +1,20 @@
+Options:
+  --sesh-tag TAG    Git tag to clone from. Defaults to the latest version.
+  --sesh-commit COMMIT
+                    Git commit sha to checkout. Defaults to the latest version.
+  --sesh-purge, --purge
+                    Purge system of all known install locations before
+                    performing install.
+  --sesh-extras, --extras
+                    Configures sesh bindings and completions for your shells.
+                    Requires that you pass --shell to the main installer.
+
+  Bindings:
+    <M-s>           Show current sessions. Context: Shell, Tmux
+    <M-e>           Show full sesh menu. Context: Shell
+    <C-a>           Show all sessions and directories. Context: Sesh
+    <C-t>           Show tmux session list. Context: Sesh
+    <C-g>           Show configured sessions. Context: Sesh
+    <C-x>           Show zoxide results. Context: Sesh
+    <C-f>           Show all files. Context: Sesh
+    <C-d>           Detach session. Context: Sesh

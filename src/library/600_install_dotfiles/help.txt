@@ -1,0 +1,14 @@
+This is a special library module which installs Worldshredder dotfiles
+and editor configs.
+
+See: https://github.com/worldshredder/dotfiles
+
+Options:
+  --dotfiles-tag TAG
+                    Git tag to clone from. Defaults to the latest version.
+  --dotfiles-commit COMMIT
+                    Git commit sha to checkout. Defaults to the latest version.
+  --dotfiles-lib LIBRARY
+                    Comma-separated list of dotfile libraries to install. This
+                    list must correspond to the contents of 'lib/' in the
+                    worldshredder/dotfiles repository.

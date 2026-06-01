@@ -1,0 +1,10 @@
+Options:
+  --zoxide-tag TAG  Git tag to clone from. Defaults to the latest version.
+  --zoxide-commit COMMIT
+                    Git commit sha to checkout. Defaults to the latest version.
+  --zoxide-purge, --purge
+                    Purge system of all known install locations before
+                    performing install.
+  --zoxide-use-pkgman, --pkgman
+                    Install using system package manager rather than building
+                    from source.

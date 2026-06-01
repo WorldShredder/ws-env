@@ -1,0 +1,10 @@
+Options:
+  --luarocks-version VERSION
+                    The version of Luarocks to build in format: X.Y[.Z].
+                    Defaults to the latest available version.
+  --luarocks-purge, --purge
+                    Purge system of all known install locations before
+                    performing install.
+  --luarocks-use-pkgman, --pkgman
+                    Install using system package manager rather than building
+                    from source.

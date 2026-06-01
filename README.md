@@ -1,49 +1,28 @@
-> [!IMPORTANT]
-> - This script is intended for **debian**-based systems.
-> - Some features may be inaccessible outside of a [Qubes](https://qubes-os.org) environment.
-
-<h1 align=center>PERSONAL ENVIRONMENT</h1>
-<h3 align=center>Tmux + Vim</h3>
+<h1 align=center>WS-ENV</h1>
+<h3 align=center>Developer Workstation Setup</h3>
 <br>
 
-Installer for my personal developer environment. The installer will pickup where it left off if failures occur, although this feature is only partially implemented.
+**WS-Env** is a personal collection of modular installation scripts for developer workstations, and written using the [Planit](https://github.com/worldshredder/planit) framework to better handle failures during a lengthy install.
 
-## Usage
+> [!IMPORTANT]
+> Tested in latest _debian_ and _fedora_ Qubes templates.
 
-```bash
-git clone --depth 1 https://github.com/worldshredder/ws-env.git && ws-env/src/setup.sh
-```
+## Install
 
-## Tools & Packages
+1. #### Clone the repository
 
-- Vim GTK3 w/Vim-Plug
-    - [Vim Config](https://gist.github.com/WorldShredder/4a304b97a162777f753dd097b5660565)
-    - [Vim Bindings](https://gist.github.com/WorldShredder/4a304b97a162777f753dd097b5660565?permalink_comment_id=5950364#gistcomment-5950364)
-- Tmux w/Sesh
-    - [Tmux Config](https://gist.github.com/WorldShredder/be7cd4d6dcf9ca1057e3e0310b73603e)
-    - [Tmux Bindings (not yet documented)]()
-- FZF
-- Zoxide
-- Eza (Includes `ezg` alias)
-- FD
-- Golang
+    ```sh
+    git clone https://github.com/worldshredder/ws-env && cd ws-env/src
+    ```
 
-## Resources
+2. #### Run the installer
 
-- [Tmux Installer](https://github.com/worldshredder/tmux-installer)
-- [Go Installer](https://gist.github.com/WorldShredder/726c1add8067556a17a431fdd60517f0)
-- [Tmux Setup Instructions](https://gist.github.com/WorldShredder/8fb23f07bc4348a9740eb4f207b9c06c)
+    ```sh
+    ./install --shell bash,zsh
+    ```
 
-## Todo
+    For installer and library options, see `--help`
 
-- [ ] Implement proper cleanup step in trap
-- [ ] Allow script execution with sudo (requires `sudo -u __USER__` scheme)
-- [ ] Add install steps for NeoVim
-- [ ] Language environments
-    - [ ] Python
-    - [ ] Lua
-    - [ ] PHP
-    - [ ] Javascript/Node
-    - [ ] Rust
-    - [ ] C
-- [ ] Bunch of other stuff...
+    ```sh
+    ./install --help
+    ```

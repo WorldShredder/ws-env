@@ -1,0 +1,10 @@
+Options:
+  --fzf-tag TAG     Git tag to clone from. Defaults to the latest version.
+  --fzf-commit COMMIT
+                    Git commit sha to checkout. Defaults to the latest version.
+  --fzf-purge, --purge
+                    Purge system of all known install locations before
+                    performing install.
+  --fzf-use-pkgman, --pkgman
+                    Install using system package manager rather than building
+                    from source.

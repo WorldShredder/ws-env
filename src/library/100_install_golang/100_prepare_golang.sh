@@ -13,7 +13,7 @@ GOLANG_GOPATH="${HOME}/.local/go"
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        --golang-update)
+        --golang-upgrade)
             GOLANG_UPDATE='true'
             ;;
         --golang-purge | --purge)

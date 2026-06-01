@@ -1,0 +1,10 @@
+Options:
+  --node-version VERSION
+                    Node version to build, eg: 22, 23, 24. Defaults to the
+                    latest available version.
+  --node-nvm-version VERSION
+                    NVM version to build in format: X.Y.Z. Defaults to the
+                    latest available version.
+  --node-purge, --purge
+                    Purge system of all known install locations before
+                    performing install.

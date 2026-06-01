@@ -1,0 +1,10 @@
+Options:
+  --tmux-tag TAG    Git tag to clone from. Defaults to the latest version.
+  --tmux-commit COMMIT
+                    Git commit sha to checkout. Defaults to the latest version.
+  --tmux-purge, --purge
+                    Purge system of all known install locations before
+                    performing install.
+  --tmux-use-pkgman, --pkgman
+                    Install using system package manager rather than building
+                    from source.

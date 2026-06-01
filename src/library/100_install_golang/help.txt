@@ -1,0 +1,13 @@
+Options:
+  --golang-upgrade  Upgrade the current install of golang without purging its
+                    install from the system.
+  --golang-purge, --purge
+                    Purge system of all known install locations before
+                    performing install. This option assumes --golang-upgrade.
+  --golang-version VERSION
+                    The golang version to build. Accepted format: X.Y.Z
+                    Defaults to the latest available version.
+  --golang-install-dir PATH
+                    Golang install path, default: {HOME}/.local/opt
+  --golang-gopath PATH
+                    Golang binaries path, default: {HOME}/.local/go

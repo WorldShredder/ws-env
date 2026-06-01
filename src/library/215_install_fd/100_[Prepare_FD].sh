@@ -8,7 +8,6 @@ trap 'exit $?' ERR
 FD_TAG=''
 FD_COMMIT=''
 FD_USE_PKGMAN='false'
-FD_EXTRAS='false'
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -25,9 +24,6 @@ while [ $# -gt 0 ]; do
             ;;
         --fd-use-pkgman | --pkgman)
             FD_USE_PKGMAN='true'
-            ;;
-        --fd-extras | --extras)
-            FD_EXTRAS='true'
             ;;
         --fd-*)
             Plan::log.mod -c 1 "Invalid option '$1'"
@@ -54,7 +50,6 @@ fi
 Plan::vcache.add local FD_TAG "$FD_TAG"
 Plan::vcache.add local FD_COMMIT "$FD_COMMIT"
 Plan::vcache.add local FD_USE_PKGMAN "$FD_USE_PKGMAN"
-Plan::vcache.add local FD_EXTRAS "$FD_EXTRAS"
 
 #
 # Remove Install

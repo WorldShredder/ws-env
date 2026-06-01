@@ -1,0 +1,10 @@
+Options:
+  --rust-purge, --purge
+                    Purge system of all known install locations before
+                    performing install.
+  --rust-use-pkgman, --pkgman
+                    Install using system package manager rather than building
+                    from source.
+  --rust-rustup-args ARGS
+                    Space-separated string of args to pass to rustup installer.
+                    If --rust-use-pkgman is given, this option is ignored.

@@ -1,0 +1,14 @@
+Options:
+  --eza-tag TAG     Git tag to clone from. Defaults to the latest version.
+  --eza-commit COMMIT
+                    Git commit sha to checkout. Defaults to the latest version.
+  --eza-purge, --purge
+                    Purge system of all known install locations before
+                    performing install.
+  --eza-use-pkgman, --pkgman
+                    Install using system package manager rather than building
+                    from source.
+  --eza-extras, --extras
+                    Install additional library-specific aliases to your shell
+                    runtime configs. Requires that you pass --shell to the main
+                    installer.

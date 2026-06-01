@@ -97,7 +97,9 @@ Options:
               configuration.
   -v, --version
               Print WS-Env version.
-  -h, --help  Print this help message.
+  -h, --help LIBRARY
+              Print this help message, unless LIBRARY is given, in which case
+              print help.txt of LIBRARY.
 
 Example:
   ${0##*/} --shell bash,zsh
@@ -168,7 +170,21 @@ while :; do
             exit 0
             ;;
         -h | --help)
-            print_help
+            if [[ "$2" =~ ^[a-zA-Z0-9]+$ ]]; then
+                lib="${2,,}"
+                # TODO: need to fix this
+                if ! [ -f "${pwd}/library/"*"$lib"*'/help.txt' ]; then
+                    Plan::log.error "Library '$lib' has no help.txt"
+                    exit 1
+                fi
+                lib_first="${lib::1}"
+                printf '%s%s Library Help\n' "${lib_first^^}" "${lib:1}"
+                printf 'Usage: %s -l %s [--] [%s_OPTION ...]\n\n' \
+                    "${0##*/}" "$lib" "${lib^^}"
+                cat "${pwd}/library/"*"$lib"*'/help.txt'
+            else
+                print_help
+            fi
             exit 0
             ;;
         --)

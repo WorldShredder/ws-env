@@ -245,10 +245,6 @@ exit_handler() {
 
 trap 'exit_handler' EXIT INT TERM HUP QUIT
 
-# auth_pid="$$"
-# trap 'Plan::log.debug "Cleaning up \"$module_cache\""; rm -rf "$module_cache"; kill -KILL "$auth_pid" 2>/dev/null' \
-#     EXIT INT TERM HUP QUIT
-
 #
 # Root Authentication
 #

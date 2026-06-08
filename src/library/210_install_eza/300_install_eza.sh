@@ -14,13 +14,24 @@ fi
 # Install Package
 #
 
+declare -a cargo_args
+[ -n "$EZA_CARGO_ARGS" ] \
+    && IFS=' ' read -ra cargo_args <<< "$EZA_CARGO_ARGS"
+
 if [ "$EZA_USE_PKGMAN" = 'true' ]; then
     Plan::log.mod "Installing via ${WSE__DISTRIB} package manager"
     pkg_install eza
+elif [ -n "$EZA_VERSION" ]; then
+    Plan::log.mod "Installing version '$EZA_VERSION' via cargo-binstall"
+    if [ "$EZA_VERSION" = 'latest' ]; then
+        cargo binstall "${cargo_args[@]}" -y 'eza'
+    else
+        cargo binstall "${cargo_args[@]}" -y "eza@${EZA_VERSION}"
+    fi
 else
     Plan::log.mod "Build/install via cargo"
     cd "$EZA_DL_PATH"
-    cargo install --path .
+    cargo install "${cargo_args[@]}" --path .
 
     Plan::log.mod 'Cleaning up'
     cd .. && rm -rf "$EZA_DL_PATH"

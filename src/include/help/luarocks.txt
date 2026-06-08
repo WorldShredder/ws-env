@@ -5,6 +5,6 @@ Options:
   --luarocks-purge, --purge
                     Purge system of all known install locations before
                     performing install.
-  --luarocks-use-pkgman, --pkgman
+  --luarocks-pkgman, --pkgman
                     Install using system package manager rather than building
                     from source.

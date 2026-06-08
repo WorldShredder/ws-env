@@ -17,7 +17,7 @@ while [ $# -gt 0 ]; do
         --lua-purge | --purge)
             LUA_PURGE='true'
             ;;
-        --lua-use-pkgman | --pkgman)
+        --lua-pkgman | --pkgman)
             LUA_USE_PKGMAN='true'
             ;;
         --lua-*)

@@ -5,6 +5,6 @@ Options:
   --tmux-purge, --purge
                     Purge system of all known install locations before
                     performing install.
-  --tmux-use-pkgman, --pkgman
+  --tmux-pkgman, --pkgman
                     Install using system package manager rather than building
                     from source.

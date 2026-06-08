@@ -14,7 +14,7 @@ while [ $# -gt 0 ]; do
         --rust-purge | --purge)
             RUST_PURGE='true'
             ;;
-        --rust-use-pkgman | --pkgman)
+        --rust-pkgman | --pkgman)
             RUST_USE_PKGMAN='true'
             ;;
         --rust-rustup-args)

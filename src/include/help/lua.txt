@@ -1,14 +1,14 @@
 Options:
   --lua-version VERSION
                     The version of Lua to install in format: X.Y[.Z]. If
-                    option --lua-use-pkgman is given and this is a debian
-                    install, this option corresponds to the package name and
-                    may be required, eg: lua5.5. In this case it is recommended
-                    that you search for a compatible version using
-                    'apt search lua'. This option defaults to the known version.
+                    option --lua-pkgman is given and this is a debian install,
+                    this option corresponds to the package name and may be
+                    required, eg: lua5.5. In this case it is recommended that
+                    you search for a compatible version using 'apt search lua'.
+                    This option defaults to the known version.
   --lua-purge, --purge
                     Purge system of all known install locations before
                     performing install.
-  --lua-use-pkgman, --pkgman
+  --lua-pkgman, --pkgman
                     Install using system package manager rather than building
                     from source.

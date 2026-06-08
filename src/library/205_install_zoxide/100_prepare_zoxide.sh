@@ -7,7 +7,9 @@ trap 'exit $?' ERR
 
 ZOXIDE_TAG=''
 ZOXIDE_COMMIT=''
+ZOXIDE_VERSION=''
 ZOXIDE_USE_PKGMAN='false'
+ZOXIDE_CARGO_ARGS=''
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -19,11 +21,26 @@ while [ $# -gt 0 ]; do
             ZOXIDE_COMMIT="$2"
             shift
             ;;
+        --zoxide-version | --binstall)
+            if ! command -v cargo-binstall; then
+                Plan::log.mod -c 1 "--zoxide-version requires package 'cargo-binstall'"
+                exit 1
+            fi
+            ZOXIDE_VERSION='latest'
+            if [ "$1" != '--binstall' ]; then
+                ZOXIDE_VERSION="$2"
+                shift
+            fi
+            ;;
         --zoxide-purge | --purge)
             ZOXIDE_PURGE='true'
             ;;
-        --zoxide-use-pkgman | --pkgman)
+        --zoxide-pkgman | --pkgman)
             ZOXIDE_USE_PKGMAN='true'
+            ;;
+        --zoxide-cargo-args | --cargo-args)
+            ZOXIDE_CARGO_ARGS="$2"
+            shift
             ;;
         --zoxide-*)
             Plan::log.mod -c 1 "Invalid option '$1'"
@@ -38,13 +55,30 @@ if [ -n "$ZOXIDE_COMMIT" ] && ! [[ "$ZOXIDE_COMMIT" =~ ^[a-f0-9]+$ ]]; then
     exit 1
 fi
 
+if [ -n "$ZOXIDE_VERSION" ] && ! [[ "$ZOXIDE_VERSION" =~ ^(latest|([0-9]\.?)+)$ ]]; then
+    Plan::log.mod -c 1 "Invalid version number '$ZOXIDE_VERSION'"
+    exit 1
+fi
+
+#
+# Environment
+#
+
+Plan::vcache.add local ZOXIDE_TAG "$ZOXIDE_TAG"
+Plan::vcache.add local ZOXIDE_COMMIT "$ZOXIDE_COMMIT"
+Plan::vcache.add local ZOXIDE_VERSION "$ZOXIDE_VERSION"
+Plan::vcache.add local ZOXIDE_USE_PKGMAN "$ZOXIDE_USE_PKGMAN"
+Plan::vcache.add local ZOXIDE_CARGO_ARGS "$ZOXIDE_CARGO_ARGS"
+
 #
 # Remove Install
 #
 
 if [ "$ZOXIDE_PURGE" = 'true' ]; then
     Plan::log.mod 'Purging Zoxide'
+
     pkg_remove zoxide || true
+    cargo uninstall zoxide || true
 
     sudo rm -rf \
         /usr/bin/zoxide \
@@ -66,13 +100,5 @@ if command -v zoxide; then
     Plan::vcache.add local ZOXIDE_SKIP_INSTALL true
     exit 0
 fi
-
-#
-# Environment
-#
-
-Plan::vcache.add local ZOXIDE_TAG "$ZOXIDE_TAG"
-Plan::vcache.add local ZOXIDE_COMMIT "$ZOXIDE_COMMIT"
-Plan::vcache.add local ZOXIDE_USE_PKGMAN "$ZOXIDE_USE_PKGMAN"
 
 Plan::log.mod ' '

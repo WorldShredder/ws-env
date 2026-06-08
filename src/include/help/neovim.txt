@@ -5,6 +5,6 @@ Options:
   --neovim-purge, --purge
                     Purge system of all known install locations before
                     performing install.
-  --neovim-use-pkgman, --pkgman
+  --neovim-pkgman, --pkgman
                     Install using system package manager rather than building
                     from source.

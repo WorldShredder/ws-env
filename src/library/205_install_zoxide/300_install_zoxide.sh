@@ -14,9 +14,20 @@ fi
 # Install Package
 #
 
+declare -a cargo_args
+[ -n "$ZOXIDE_CARGO_ARGS" ] \
+    && IFS=' ' read -ra cargo_args <<< "$ZOXIDE_CARGO_ARGS"
+
 if [ "$ZOXIDE_USE_PKGMAN" = 'true' ]; then
     Plan::log.mod "Installing via ${WSE__DISTRIB} package manager"
     pkg_install zoxide
+elif [ -n "$ZOXIDE_VERSION" ]; then
+    Plan::log.mod "Installing version '$ZOXIDE_VERSION' via cargo-binstall"
+    if [ "$ZOXIDE_VERSION" = 'latest' ]; then
+        cargo binstall "${cargo_args[@]}" -y 'zoxide'
+    else
+        cargo binstall "${cargo_args[@]}" -y "zoxide@${ZOXIDE_VERSION}"
+    fi
 else
     Plan::log.mod 'Running Zoxide install script'
     cd "$ZOXIDE_DL_PATH"
@@ -29,7 +40,7 @@ fi
 Plan::log.mod "Configuring shells: $WSE__SHELLS"
 IFS=' ' read -ra shells <<< "$WSE__SHELLS"
 for sh in "${shells[@]}"; do
-    if [ "$ZOXIDE_USE_PKGMAN" != 'true' ]; then
+    if [ "$ZOXIDE_USE_PKGMAN" != 'true' ] && [ -z "$ZOXIDE_VERSION" ]; then
         name='300_zoxide_path.sh'
         printf '%s\n' \
             '! [[ "$PATH" == *"${HOME}/.local/bin"* ]] &&' \

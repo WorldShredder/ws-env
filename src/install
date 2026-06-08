@@ -103,6 +103,28 @@ Options:
               print help.txt of LIBRARY. If LIBRARY is 'all', print all help
               messages including this one.
 
+Overrides:
+      --purge Always purge system of known install locations before installing
+              libraries. Use --LIBRARY-purge instead to target a library.
+      --pkgman
+              Always prioritize installing with system package managers rather
+              than building from source. This option is not recommended as it
+              may lead to buggy, outdated packages. Use --LIBRARY-pkgman instead
+              to target a library.
+      --binstall
+              Always install the latest binary of a crate using cargo-binstall.
+              This option requires cargo-binstall (see rust library) and
+              overrides --pkgman, --commit, and --tag. Use --LIBRARY-version
+              instead to target a library.
+      --cargo-args ARGS
+              Additional args to always pass to cargo install/binstall. Options
+              such as --path, --git, --branch, --tag, and --rev should be
+              avoided as they may interfere with the default options. Use
+              --LIBRARY-cargo-args instead to target a library.
+      --extras
+              Always install library extras when available.
+              Use --LIBRARY-extras to target a library.
+
 Example:
   ${0##*/} --shell bash,zsh
   ${0##*/} --shell bash --lib neovim,tmux --purge

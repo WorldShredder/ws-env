@@ -5,7 +5,7 @@
 set -eo pipefail
 trap 'exit $?' ERR
 
-if [ "$ZOXIDE_SKIP_INSTALL" = 'true' ] || [ "$ZOXIDE_USE_PKGMAN" = 'true' ]; then
+if [ "$ZOXIDE_SKIP_INSTALL" = 'true' ] || [ "$ZOXIDE_USE_PKGMAN" = 'true' ] || [ -n "$ZOXIDE_VERSION" ]; then
     Plan::log.mod 'Skipping'
     exit 0
 fi

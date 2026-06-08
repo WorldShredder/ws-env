@@ -22,7 +22,7 @@ while [ $# -gt 0 ]; do
         --neovim-purge | --purge)
             NEOVIM_PURGE='true'
             ;;
-        --neovim-use-pkgman | --pkgman)
+        --neovim-pkgman | --pkgman)
             NEOVIM_USE_PKGMAN='true'
             ;;
         --neovim-*)

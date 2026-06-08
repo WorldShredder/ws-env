@@ -7,7 +7,9 @@ trap 'exit $?' ERR
 
 FD_TAG=''
 FD_COMMIT=''
+FD_VERSION=''
 FD_USE_PKGMAN='false'
+FD_CARGO_ARGS=''
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -19,11 +21,26 @@ while [ $# -gt 0 ]; do
             FD_COMMIT="$2"
             shift
             ;;
+        --fd-version | --binstall)
+            if ! command -v cargo-binstall; then
+                Plan::log.mod -c 1 "--fd-version requires package 'cargo-binstall'"
+                exit 1
+            fi
+            FD_VERSION='latest'
+            if [ "$1" != '--binstall' ]; then
+                FD_VERSION="$2"
+                shift
+            fi
+            ;;
         --fd-purge | --purge)
             FD_PURGE='true'
             ;;
-        --fd-use-pkgman | --pkgman)
+        --fd-pkgman | --pkgman)
             FD_USE_PKGMAN='true'
+            ;;
+        --fd-cargo-args | --cargo-args)
+            FD_CARGO_ARGS="$2"
+            shift
             ;;
         --fd-*)
             Plan::log.mod -c 1 "Invalid option '$1'"
@@ -38,6 +55,11 @@ if [ -n "$FD_COMMIT" ] && ! [[ "$FD_COMMIT" =~ ^[a-f0-9]+$ ]]; then
     exit 1
 fi
 
+if [ -n "$FD_VERSION" ] && ! [[ "$FD_VERSION" =~ ^(latest|([0-9]\.?)+)$ ]]; then
+    Plan::log.mod -c 1 "Invalid version number '$FD_VERSION'"
+    exit 1
+fi
+
 if [ "$FD_USE_PKGMAN" != 'true' ] && ! command -v cargo; then
     Plan::log.mod -c 1 "Require 'cargo' (command not found)"
     exit 1
@@ -49,7 +71,9 @@ fi
 
 Plan::vcache.add local FD_TAG "$FD_TAG"
 Plan::vcache.add local FD_COMMIT "$FD_COMMIT"
+Plan::vcache.add local FD_VERSION "$FD_VERSION"
 Plan::vcache.add local FD_USE_PKGMAN "$FD_USE_PKGMAN"
+Plan::vcache.add local FD_CARGO_ARGS "$FD_CARGO_ARGS"
 
 #
 # Remove Install

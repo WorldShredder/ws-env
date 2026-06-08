@@ -17,7 +17,7 @@ while [ $# -gt 0 ]; do
         --luarocks-purge | --purge)
             LUAROCKS_PURGE='true'
             ;;
-        --luarocks-use-pkgman | --pkgman)
+        --luarocks-pkgman | --pkgman)
             LUAROCKS_USE_PKGMAN='true'
             ;;
         --luarocks-*)

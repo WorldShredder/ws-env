@@ -2,9 +2,18 @@ Options:
   --zoxide-tag TAG  Git tag to clone from. Defaults to the latest version.
   --zoxide-commit COMMIT
                     Git commit sha to checkout. Defaults to the latest version.
+  --zoxide-version, --binstall VERSION
+                    Install a specific version via cargo-binstall. If VERSION
+                    is 'latest', install the latest version. If --binstall is
+                    used, VERSION is ignored and the latest version is assumed.
+                    This option requires cargo-binstall from --rust-extras.
   --zoxide-purge, --purge
                     Purge system of all known install locations before
                     performing install.
-  --zoxide-use-pkgman, --pkgman
+  --zoxide-pkgman, --pkgman
                     Install using system package manager rather than building
                     from source.
+  --zoxide-cargo-args ARGS
+                    Additional args to pass to cargo install/binstall. Options
+                    such as --path, --git, --branch, --tag and --rev should be
+                    avoided as they may interfere with the default options.

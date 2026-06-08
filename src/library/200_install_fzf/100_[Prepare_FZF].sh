@@ -22,7 +22,7 @@ while [ $# -gt 0 ]; do
         --fzf-purge | --purge)
             FZF_PURGE='true'
             ;;
-        --fzf-use-pkgman | --pkgman)
+        --fzf-pkgman | --pkgman)
             FZF_USE_PKGMAN='true'
             ;;
         --fzf-*)

@@ -5,7 +5,7 @@
 set -eo pipefail
 trap 'exit $?' ERR
 
-if [ "$FD_SKIP_INSTALL" = 'true' ] || [ "$FD_USE_PKGMAN" = 'true' ]; then
+if [ "$FD_SKIP_INSTALL" = 'true' ] || [ "$FD_USE_PKGMAN" = 'true' ] || [ -n "$FD_VERSION" ]; then
     Plan::log.mod 'Skipping'
     exit 0
 fi

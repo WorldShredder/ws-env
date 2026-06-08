@@ -22,7 +22,7 @@ while [ $# -gt 0 ]; do
         --tmux-purge | --purge)
             TMUX_PURGE='true'
             ;;
-        --tmux-use-pkgman | --pkgman)
+        --tmux-pkgman | --pkgman)
             TMUX_USE_PKGMAN='true'
             ;;
         --tmux-*)

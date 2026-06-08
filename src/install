@@ -88,6 +88,7 @@ Options:
               Perform a dry run install. This will perform all steps, including
               cache creation, but exit before calling Planit. Use this option
               to test different configurations before performing a full install.
+      --list  List available library modules.
       --level LOG_LEVEL
               Sets Planit's log level to LOG_LEVEL. Available levels are: ERROR
               WARN, INFO, DEBUG, NONE.
@@ -99,13 +100,56 @@ Options:
               Print WS-Env version.
   -h, --help LIBRARY
               Print this help message, unless LIBRARY is given, in which case
-              print help.txt of LIBRARY.
+              print help.txt of LIBRARY. If LIBRARY is 'all', print all help
+              messages including this one.
 
 Example:
   ${0##*/} --shell bash,zsh
   ${0##*/} --shell bash --lib neovim,tmux --purge
   ${0##*/} --lib nerdfonts --nerdfonts-font jetbrainsmono,robotomono
 EOF
+}
+
+print_library_help() {
+    local help_path="$1"
+    local lib_name="${1##*/}"
+    lib_name="${lib_name%.*}"
+    cat << EOF
+${lib_name^^} HELP
+Usage: ${0##*/} -l ${lib_name} [--] [${lib_name^^}_OPTIONS ...]
+
+EOF
+    cat "$help_path"
+}
+
+print_all_help() {
+    print_help
+
+    local help_dir="$1"
+    local path
+    (
+        shopt -s nullglob
+        for path in "$help_dir"/*.txt; do
+            printf '\n\n'
+            print_library_help "$path"
+        done
+    )
+    return 0
+}
+
+list_libraries() {
+    local path lib_name
+    printf 'WS-ENV LIBRARY LIST\n'
+    printf 'Usage: %s -l LIBRARY [--] [LIBRARY_OPTIONS ...]\n\n' "${0##*/}"
+    printf 'Library Modules:\n'
+    (
+        shopt -s nullglob
+        for path in "${pwd}/library"/*; do
+            lib_name="${path##*_install_}"
+            printf '  %s\n' "$lib_name"
+        done
+    )
+    return 0
 }
 
 #
@@ -163,6 +207,10 @@ while :; do
         --dry-run)
             dry_run='true'
             ;;
+        --list)
+            list_libraries
+            exit 0
+            ;;
         --level) shift ;;    # handled at top
         -V | --verbose) : ;; # handled at top
         -v | --version)
@@ -172,16 +220,16 @@ while :; do
         -h | --help)
             if [[ "$2" =~ ^[a-zA-Z0-9]+$ ]]; then
                 lib="${2,,}"
-                # TODO: need to fix this
-                if ! [ -f "${pwd}/library/"*"$lib"*'/help.txt' ]; then
+                docs_dir="${pwd}/include/help"
+                doc_path="${docs_dir}/${lib}.txt"
+                if [ "$lib" = 'all' ]; then
+                    print_all_help "$docs_dir"
+                elif [ -f "$doc_path" ]; then
+                    print_library_help "$doc_path"
+                else
                     Plan::log.error "Library '$lib' has no help.txt"
                     exit 1
                 fi
-                lib_first="${lib::1}"
-                printf '%s%s Library Help\n' "${lib_first^^}" "${lib:1}"
-                printf 'Usage: %s -l %s [--] [%s_OPTION ...]\n\n' \
-                    "${0##*/}" "$lib" "${lib^^}"
-                cat "${pwd}/library/"*"$lib"*'/help.txt'
             else
                 print_help
             fi

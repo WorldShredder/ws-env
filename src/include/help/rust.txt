@@ -8,3 +8,7 @@ Options:
   --rust-rustup-args ARGS
                     Space-separated string of args to pass to rustup installer.
                     If --rust-use-pkgman is given, this option is ignored.
+  --rust-extras, --extras
+                    Install or upgrade cargo-binstall crate. When binstall is
+                    available, it will be used over the standard cargo install
+                    command when installing crates.

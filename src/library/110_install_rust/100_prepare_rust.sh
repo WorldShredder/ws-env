@@ -7,6 +7,7 @@ trap 'exit $?' ERR
 
 RUST_PURGE='false'
 RUST_USE_PKGMAN='false'
+RUST_EXTRAS='false'
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -20,6 +21,9 @@ while [ $# -gt 0 ]; do
             RUST_RUSTUP_ARGS="$2"
             shift
             ;;
+        --rust-extras | --extras)
+            RUST_EXTRAS='true'
+            ;;
         --rust-*)
             Plan::log.mod -c 1 "Invalid option '$1'"
             exit 1
@@ -27,6 +31,14 @@ while [ $# -gt 0 ]; do
     esac
     shift
 done
+
+#
+# Environment
+#
+
+Plan::vcache.add local RUST_USE_PKGMAN "$RUST_USE_PKGMAN"
+Plan::vcache.add local RUST_RUSTUP_ARGS "$RUST_RUSTUP_ARGS"
+Plan::vcache.add local RUST_EXTRAS "$RUST_EXTRAS"
 
 #
 # Remove Install
@@ -56,12 +68,5 @@ for sh in "${shells[@]}"; do
         sed -i '/$HOME\/\.cargo\/env/d' "${HOME}/.${sh}rc" || true
     fi
 done
-
-#
-# Environment
-#
-
-Plan::vcache.add local RUST_USE_PKGMAN "$RUST_USE_PKGMAN"
-Plan::vcache.add local RUST_RUSTUP_ARGS "$RUST_RUSTUP_ARGS"
 
 Plan::log.mod ' '

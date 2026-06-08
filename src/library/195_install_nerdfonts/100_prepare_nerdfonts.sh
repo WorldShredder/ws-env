@@ -55,6 +55,7 @@ if [ "$NF_LIST" = 'true' ]; then
         exit 1
     }
     exec 5>&-
+    Plan::log.mod ' '
     Plan::abort
 fi
 

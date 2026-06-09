@@ -45,13 +45,17 @@ for path in "${path_modules}/"*; do
 done
 
 declare -A library
+declare -A library_id
 for path in "${path_library}/"*; do
     # Expects: 100_install_libname.sh, 100_[Install_LibName].sh, 100_[Install_LibName]
-    library_name="${path##*_}"
+    library_dir="${path##*/}"
+    library_name="${library_dir##*_}"
     [[ "${path##*/}" = *\[*\]* ]] \
         && library_name="${library_name%%\]*}" \
         || library_name="${library_name%.*}"
-    library["${library_name,,}"]="$path"
+    library_name="${library_name,,}"
+    library["$library_name"]="$path"
+    library_id["$library_name"]="${library_dir%%_*}"
 done
 
 print_help() {
@@ -137,7 +141,7 @@ EOF
 
 print_library_help() {
     local help_path="$1"
-    local lib_name="${1##*/}"
+    local lib_name="${1##*_}"
     lib_name="${lib_name%.*}"
     cat << EOF
 ${lib_name^^} HELP
@@ -258,15 +262,23 @@ while :; do
             ;;
         -h | --help)
             if [[ "$2" =~ ^[a-zA-Z0-9]+$ ]]; then
-                lib="${2,,}"
+                lib_name="${2,,}"
+                lib_id="${library_id["$lib_name"]}"
+
+                if [ "$lib_name" != 'all' ] && [ -z "$lib_id" ]; then
+                    Plan::log.error "Not a library module '$lib_name'"
+                    exit 1
+                fi
+
                 docs_dir="${pwd}/include/help"
-                doc_path="${docs_dir}/${lib}.txt"
-                if [ "$lib" = 'all' ]; then
+                doc_path="${docs_dir}/${lib_id}_${lib_name}.txt"
+
+                if [ "$lib_name" = 'all' ]; then
                     print_all_help "$docs_dir"
                 elif [ -f "$doc_path" ]; then
                     print_library_help "$doc_path"
                 else
-                    Plan::log.error "Library '$lib' has no help.txt"
+                    Plan::log.error "Library '$lib_name' has no help.txt"
                     exit 1
                 fi
             else

@@ -6,7 +6,7 @@ set -eo pipefail
 trap 'exit $?' ERR
 
 NODE_VERSION='24'
-NODE_NVM_VERSION='0.40.4'
+NODE_NVM_VERSION='0.40.5'
 NODE_PURGE='false'
 
 while [ $# -gt 0 ]; do

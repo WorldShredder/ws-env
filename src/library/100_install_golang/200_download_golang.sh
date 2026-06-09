@@ -12,6 +12,6 @@ fi
 
 Plan::log.mod "Downloading v${GOLANG_VERSION}"
 path="https://go.dev/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz"
-curl -L "$path" > "${PLAN__PATH_CACHE}/golang.tar.gz"
+curl -fL "$path" > "${PLAN__PATH_CACHE}/golang.tar.gz"
 
 Plan::log.mod ' '

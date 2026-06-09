@@ -11,6 +11,6 @@ if [ "$NODE_SKIP_INSTALL" = 'true' ]; then
 fi
 
 Plan::log.mod "Installing NVM v${NODE_NVM_VERSION}"
-curl -o- "https://raw.githubusercontent.com/nvm-sh/nvm/v${NODE_NVM_VERSION}/install.sh" | bash
+curl -fo- "https://raw.githubusercontent.com/nvm-sh/nvm/v${NODE_NVM_VERSION}/install.sh" | bash
 
 Plan::log.mod ' '

@@ -145,6 +145,16 @@ Usage: ${0##*/} -l ${lib_name} [--] [${lib_name^^}_OPTIONS ...]
 
 EOF
     cat "$help_path"
+
+    local lib_path="${library["${lib_name,,}"]}"
+    if ! [ -d "$lib_path" ] || ! [ -e "${lib_path}/require.conf" ]; then
+        return 0
+    fi
+    local line
+    printf '\nRequires:\n'
+    while read -r line; do
+        printf '  %s\n' "$line"
+    done < "${lib_path}/require.conf"
 }
 
 print_all_help() {

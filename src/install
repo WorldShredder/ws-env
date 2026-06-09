@@ -6,6 +6,10 @@ WSE__VERSION='0.1.0'
 # Logging Level
 #
 
+# We need to parse out log level options early since we use Planit's logging
+# module for installer log messages. These options must be ignored in the main
+# option parse loop.
+
 set_log_level() {
     while [ "$#" -gt 0 ]; do
         case "$1" in
@@ -60,7 +64,7 @@ done
 
 print_help() {
     cat << EOF
-Usage: ${0##*/} [OPTIONS ...] [--] [MODULE_OPTIONS ...]
+Usage: ${0##*/} [OPTIONS ...] [--] [LIBRARY_OPTIONS ...]
 
 Workstation environment setup script. Running without any defined library
 modules will install everything. For dynamic installation see --lib.
@@ -79,6 +83,7 @@ Options:
               Comma-separated list of library modules to install without their
               dependencies. This will also prevent dependency chaining if
               LIBRARY itself was included as a dependency for another library.
+              If LIBRARY is 'all', skip all library dependencies.
   -s, --shell SHELL
               Comma-separated list of shells to configure. The installer will
               search for shell runtime configs (eg: .bashrc) and automatically
@@ -110,7 +115,7 @@ Options:
               print help.txt of LIBRARY. If LIBRARY is 'all', print all help
               messages including this one.
 
-Overrides:
+Library Options:
       --purge Always purge system of known install locations before installing
               libraries. Use --LIBRARY-purge instead to target a library.
       --pkgman
@@ -207,93 +212,111 @@ declare -a exclude_targets
 declare -A library_targets
 declare -a _library_targets
 
-while :; do
-    case "$1" in
-        --force-root) force_root='true' ;;
-        -l | --lib)
-            if [ -z "${2// /}" ]; then
-                Plan::log.info 'Installing core modules only'
-                no_library='true'
+parse_opts() {
+    while :; do
+        case "$1" in
+            -l | --lib)
+                if [ -z "${2// /}" ]; then
+                    Plan::log.info 'Installing core modules only'
+                    no_library='true'
+                    shift
+                    continue
+                fi
+                IFS=, read -ra _library_targets <<< "$2"
                 shift
-                continue
-            fi
-            IFS=, read -ra _library_targets <<< "$2"
-            shift
-            ;;
-        -L | --exclude)
-            IFS=, read -ra exclude_targets <<< "$2"
-            Plan::log.info "Excluding modules: ${exclude_targets[*]}"
-            shift
-            ;;
-        -R | --skip-required)
-            IFS=, read -ra skip_required <<< "$2"
-            if [[ " ${skip_required[*]} " = *' all '* ]]; then
-                skip_all_required='true'
-            fi
-            ;;
-        -s | --shell)
-            declare -a shell_targets
-            IFS=, read -ra shells <<< "$2"
-            for sh in "${shells[@]}"; do
-                if ! [[ " ${valid_shells[*]} " = *" $sh "* ]]; then
-                    Plan::log.error "Invalid shell '$sh'; see --help"
-                    exit 1
+                ;;
+            -L | --exclude)
+                IFS=, read -ra exclude_targets <<< "$2"
+                Plan::log.info "Excluding modules: ${exclude_targets[*]}"
+                shift
+                ;;
+            -R | --skip-required)
+                IFS=, read -ra skip_required <<< "$2"
+                if [[ " ${skip_required[*]} " = *' all '* ]]; then
+                    skip_all_required='true'
                 fi
-                shell_targets+=("$sh")
-            done
-            WSE__SHELLS="${shell_targets[*]}"
-            shift
-            ;;
-        -C | --clear-cache)
-            planit_opts+=('-C')
-            ;;
-        --dry-run)
-            dry_run='true'
-            ;;
-        --list)
-            list_libraries
-            exit 0
-            ;;
-        --level) shift ;;    # handled at top
-        -V | --verbose) : ;; # handled at top
-        -v | --version)
-            printf '%s\n' "$WSE__VERSION"
-            exit 0
-            ;;
-        -h | --help)
-            if [[ "$2" =~ ^[a-zA-Z0-9]+$ ]]; then
-                lib_name="${2,,}"
-                lib_id="${library_id["$lib_name"]}"
+                ;;
+            -s | --shell)
+                declare -a shell_targets
+                declare -a shells
+                local sh
+                IFS=, read -ra shells <<< "$2"
+                for sh in "${shells[@]}"; do
+                    if ! [[ " ${valid_shells[*]} " = *" $sh "* ]]; then
+                        Plan::log.error "Invalid shell '$sh'; see --help"
+                        exit 1
+                    fi
+                    shell_targets+=("$sh")
+                done
+                WSE__SHELLS="${shell_targets[*]}"
+                shift
+                ;;
+            --force-root) force_root='true' ;;
+            --dry-run)
+                dry_run='true'
+                ;;
+            --list)
+                list_libraries
+                exit 0
+                ;;
+            -v | --version)
+                printf '%s\n' "$WSE__VERSION"
+                exit 0
+                ;;
+            -h | --help)
+                if [[ "$2" =~ ^[a-zA-Z0-9]+$ ]]; then
+                    local lib_name="${2,,}"
+                    local lib_id="${library_id["$lib_name"]}"
 
-                if [ "$lib_name" != 'all' ] && [ -z "$lib_id" ]; then
-                    Plan::log.error "Not a library module '$lib_name'"
-                    exit 1
-                fi
+                    if [ "$lib_name" != 'all' ] && [ -z "$lib_id" ]; then
+                        Plan::log.error "Not a library module '$lib_name'"
+                        exit 1
+                    fi
 
-                docs_dir="${pwd}/include/help"
-                doc_path="${docs_dir}/${lib_id}_${lib_name}.txt"
+                    local docs_dir="${pwd}/include/help"
+                    local doc_path="${docs_dir}/${lib_id}_${lib_name}.txt"
 
-                if [ "$lib_name" = 'all' ]; then
-                    print_all_help "$docs_dir"
-                elif [ -f "$doc_path" ]; then
-                    print_library_help "$doc_path"
+                    if [ "$lib_name" = 'all' ]; then
+                        print_all_help "$docs_dir"
+                    elif [ -f "$doc_path" ]; then
+                        print_library_help "$doc_path"
+                    else
+                        Plan::log.error "Library '$lib_name' has no help.txt"
+                        exit 1
+                    fi
                 else
-                    Plan::log.error "Library '$lib_name' has no help.txt"
-                    exit 1
+                    print_help
                 fi
-            else
-                print_help
-            fi
-            exit 0
-            ;;
-        --)
-            shift
-            break
-            ;;
-        *) break ;;
-    esac
-    shift
-done
+                exit 0
+                ;;
+
+            # Planit Args
+            -C | --clear-cache)
+                planit_opts+=('-C')
+                ;;
+
+            # Planit Logging
+            --level) shift ;;
+            -V | --verbose) : ;;
+
+            # Library Overrides
+            --purge | --extras | --binstall) : ;;
+
+            # End of installer options
+            --)
+                shift
+                break
+                ;;
+            *) break ;;
+        esac
+        shift
+    done
+}
+parse_opts "$@"
+
+#
+# Build Module Library
+#
 
 add_library_target() {
     local target="$1"
@@ -431,6 +454,7 @@ mkdir -p "$module_cache" || {
     Plan::log.error "Failed to create module cache '${module_cache}'"
     exit 1
 }
+planit_opts+=('-m' "$module_cache")
 Plan::log.debug "Module cache created '$module_cache'"
 
 for path in "${modules[@]}"; do
@@ -453,8 +477,11 @@ if [ "${#library_targets[@]}" -gt 0 ]; then
 fi
 
 #
-# Environment: Functions
+# Environment
 #
+
+export WSE__GITHUB_API='https://api.github.com/repos'
+export WSE__SHELLRCD="${HOME}/.shellrc.d"
 
 WSE::append_once() {
     local tag="$1" path="$2"
@@ -509,13 +536,6 @@ WSE::git_download() {
 export -f 'WSE::git_download'
 
 #
-# Environment: Variables
-#
-
-export WSE__GITHUB_API='https://api.github.com/repos'
-export WSE__SHELLRCD="${HOME}/.shellrc.d"
-
-#
 # Shell Runtime Config
 #
 
@@ -541,4 +561,4 @@ fi
 [ "$dry_run" = 'true' ] \
     && exit 0
 
-"${pwd}/planit/planit" "${planit_opts[@]}" -m "${module_cache}" -- "$@"
+"${pwd}/planit/planit" "${planit_opts[@]}" -- "$@"

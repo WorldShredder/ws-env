@@ -84,6 +84,9 @@ Options:
       --force-root
               Force installation as user 'root'. This is generally recommended
               against and may lead to an unstable install.
+  -C, --clear-cache
+              Clear cache and install state. This option effectively restarts
+              the installation process.
       --dry-run
               Perform a dry run install. This will perform all steps, including
               cache creation, but exit before calling Planit. Use this option
@@ -183,6 +186,7 @@ dry_run='false'
 force_root='false'
 no_library='false'
 skip_all_required='false'
+declare -a planit_opts
 declare -a skip_required
 declare -a valid_shells=('bash' 'zsh')
 declare -a exclude_targets
@@ -225,6 +229,9 @@ while :; do
             done
             WSE__SHELLS="${shell_targets[*]}"
             shift
+            ;;
+        -C | --clear-cache)
+            planit_opts+=('-C')
             ;;
         --dry-run)
             dry_run='true'
@@ -509,5 +516,7 @@ fi
 # Run Installer
 #
 
-[ "$dry_run" != 'true' ] \
-    && "${pwd}/planit/planit" -m "${module_cache}" -- "$@"
+[ "$dry_run" = 'true' ] \
+    && exit 0
+
+"${pwd}/planit/planit" "${planit_opts[@]}" -m "${module_cache}" -- "$@"

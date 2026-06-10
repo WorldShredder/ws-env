@@ -40,13 +40,19 @@ pwd="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${pwd}/scripts/helpers.sh"
 
 #
+# Fetch Fonts
+#
+
+if [ "$NF_LIST" = 'true' ] || [ "$skip_install" = 'false' ]; then
+    Plan::log.mod "Fetching '${NF_TAG:-latest}' font list"
+    font_list="$(nf_list_fonts)"
+fi
+
+#
 # List Fonts
 #
 
 if [ "$NF_LIST" = 'true' ]; then
-    Plan::log.mod "Fetching '${NF_TAG:-latest}' font list"
-    font_list="$(nf_list_fonts)"
-
     Plan::log.mod 'Nav: [j] Down [k] Up [q]uit'
     exec 5> /dev/tty
     less >&5 <<< "$font_list" || {
@@ -63,12 +69,21 @@ fi
 # Environment
 #
 
-if [ "$skip_install" ]; then
+if [ "$skip_install" = 'true' ]; then
     Plan::vcache.add local NF_SKIP_INSTALL true
-    Plan::log.mod 'Skipping'
+    Plan::log.mod 'Skipping (empty font list?)'
     exit 0
 elif [ -z "$NF_FONTS" ]; then
     NF_FONTS="$DEFAULT_FONT"
+else
+    Plan::log.mod "Verifying font list: ${NF_FONTS//,/, }"
+    font_list="$(tr $'\n' ' ' <<< "${font_list,,}")"
+    while read -rd, font; do
+        if ! [[ " $font_list " = *" $font "* ]]; then
+            Plan::log.mod -c 1 "Font does not exist '$font'"
+            exit 1
+        fi
+    done <<< "${NF_FONTS},"
 fi
 
 Plan::vcache.add local NF_TAG "$NF_TAG"

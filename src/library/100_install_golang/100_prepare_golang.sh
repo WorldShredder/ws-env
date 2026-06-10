@@ -44,7 +44,7 @@ done
 #
 
 # TODO Define environment after purging & install check (see rust prepare)
-Plan::vcache.add local GOLANG_VERSION '1.26.0'
+Plan::vcache.add local GOLANG_VERSION "$GOLANG_VERSION"
 Plan::vcache.add local GOLANG_INSTALL_DIR "$GOLANG_INSTALL_DIR"
 Plan::vcache.add local GOLANG_GOPATH "$GOLANG_GOPATH"
 

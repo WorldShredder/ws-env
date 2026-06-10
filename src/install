@@ -232,9 +232,9 @@ parse_opts() {
                 ;;
             -R | --skip-required)
                 IFS=, read -ra skip_required <<< "$2"
-                if [[ " ${skip_required[*]} " = *' all '* ]]; then
-                    skip_all_required='true'
-                fi
+                [[ " ${skip_required[*]} " = *' all '* ]] \
+                    && skip_all_required='true'
+                shift
                 ;;
             -s | --shell)
                 declare -a shell_targets

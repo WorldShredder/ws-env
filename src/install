@@ -544,14 +544,20 @@ if [ -n "$WSE__SHELLS" ]; then
     mkdir -p "$WSE__SHELLRCD" || exit 1
     IFS=' ' read -ra shells <<< "$WSE__SHELLS"
     for sh in "${shells[@]}"; do
+        escape='\'
+        [ "$sh" = 'zsh' ] \
+            && escape='\\'
         WSE::append_once 'shellrc' "${HOME}/.${sh}rc" \
             "for f in '${HOME}/.shellrc.d/'*; do " \
             '[ -f "$f" ] && ' \
-            "[[ \"\$f\" =~ \\.(sh|${sh})\$ ]] && " \
+            "[[ \"\$f\" =~ ${escape}.(sh|${sh})\$ ]] && " \
             'source "$f"; ' \
             'done; ' \
             'unset f'
     done
+
+    # for loop will use glob as item when .shellrc.d/ is empty
+    printf '' > "${WSE__SHELLRCD}/000_anti-glob.sh"
 fi
 
 #

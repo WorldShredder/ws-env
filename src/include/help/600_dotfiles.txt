@@ -12,3 +12,6 @@ Options:
                     Comma-separated list of dotfile libraries to install. This
                     list must correspond to the contents of 'lib/' in the
                     worldshredder/dotfiles repository.
+  --dotfiles-shell-theme THEME
+                    The default to theme to set when installing base16-shell.
+                    See: https://github.com/worldshredder/base16-shell

@@ -8,6 +8,7 @@ trap 'exit $?' ERR
 DOTFILES_TAG=''
 DOTFILES_COMMIT=''
 DOTFILES_LIBRARY=''
+DOTFILES_SHELL_THEME='koali'
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -25,6 +26,10 @@ while [ $# -gt 0 ]; do
                 exit 1
             fi
             DOTFILES_LIBRARY="$2"
+            shift
+            ;;
+        --dotfiles-shell-theme)
+            DOTFILES_SHELL_THEME="$2"
             shift
             ;;
         --dotfiles-*)
@@ -75,5 +80,6 @@ fi
 Plan::vcache.add local DOTFILES_TAG "$DOTFILES_TAG"
 Plan::vcache.add local DOTFILES_COMMIT "$DOTFILES_COMMIT"
 Plan::vcache.add local DOTFILES_LIBRARY "$DOTFILES_LIBRARY"
+Plan::vcache.add local DOTFILES_SHELL_THEME "$DOTFILES_SHELL_THEME"
 
-Plan::log.mod ''
+Plan::log.mod ' '

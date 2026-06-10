@@ -14,7 +14,7 @@ pwd="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [ -d "$WSE__SHELLRCD" ]; then
     Plan::log.mod 'Installing Sesh bindings and completions'
-    IFS=, read -ra shells <<< "$WSE__SHELLS"
+    IFS=' ' read -ra shells <<< "$WSE__SHELLS"
     for sh in "${shells[@]}"; do
         cp "${pwd}/extras/shellrc/"*".${sh}" "$WSE__SHELLRCD"
 

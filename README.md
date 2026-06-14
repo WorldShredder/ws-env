@@ -49,7 +49,7 @@
 ## Examples
 
 > [!IMPORTANT]
-> In almost all cases you will want to specify your shell with the `-s|--shell` option, e.g., `--shell bash,zsh`. If you do not specify a shell, **ws-env** will skip configuring shell runtime configs and would require manual configuration.
+> In almost all cases you will want to specify your shell with the `-s|--shell` option, e.g., `--shell bash,zsh`. If you do not specify a shell, **WS-Env** will skip configuring shell runtime configs and would require manual configuration.
 
 #### Full install
 

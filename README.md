@@ -30,7 +30,8 @@
 2. #### Run the installer
 
     ```sh
-    ./install --shell bash,zsh
+    # Recommended options for a fresh install
+    ./install --shell bash,zsh --extras --purge --binstall
     ```
 
     For installer and library options, see `--help` or `--help all`:
@@ -52,13 +53,11 @@
 
 #### Full install
 
-.The below example also configures _bash_ and _zsh_ shells.
-
 > [!NOTE]
 > In most cases it is recommended that you use `--purge` to avoid conflicts with newly installed software. It is also recommended that `--binstall` be passed to avoid dependency issues when building Rust crates.
 
 ```sh
-./install --purge --extras --binstall
+./install -s bash --purge --extras --binstall
 ```
 
 #### Full install (no dotfiles)
@@ -66,7 +65,7 @@
 If you want everything except [Worldshredder's dotfiles](https://github.com/worldshredder/dotfiles), you can exclude it with `-L`:
 
 ```sh
-./install -L dotfiles --purge --extras --binstall
+./install -s bash -L dotfiles --purge --extras --binstall
 ```
 
 #### Dotfile-centric install
@@ -77,7 +76,7 @@ If you want everything except [Worldshredder's dotfiles](https://github.com/worl
 If you only want [Worldshredder's dotfiles](https://github.com/worldshredder/dotfiles) and their dependencies, you can specify the library with `-l|--lib`:
 
 ```sh
-./install -l dotfiles --purge --extras --binstall
+./install -s bash -l dotfiles --purge --extras --binstall
 ```
 
 Or if you the dotfiles only, you can exclude the library's dependencies with `-R|--skip-required`:

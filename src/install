@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-WSE__VERSION='0.1.0'
+WSE__VERSION='1.0.0'
 
 #
 # Logging Level

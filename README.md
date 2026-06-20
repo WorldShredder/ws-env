@@ -19,7 +19,7 @@
 - Bash
 - Zsh
 
-## Install
+## Basic Install
 
 1. #### Clone the repository
 
@@ -46,21 +46,38 @@
     ./install --list
     ```
 
-## Examples
+## Advanced Install
+
+**WS-Env** provides several options that allow you to tailor the installation to your needs. See `./install --help all` for a full list of options.
+
+#### Whitelist & Blacklist
+
+You can specify the libraries you want to install with the `-l|--lib` option (whitelist) or you can exclude libraries using the `-L|--exclude` option (blacklist). The latter option overrides module dependencies defined in `require.conf` config files.
+
+#### Shell Configuration
+
+**WS-Env** will configure compatible shell configs when they are passed using the `-s|--shell` option, e.g., `--shell bash,zsh`. If you do not specify a shell you'll need to configure your shell runtime configs manually (not documented here).
+
+#### Dependency Management
+
+**WS-Env** modules that depend on the installation of other modules define their dependencies in a `require.conf` file. This ensures necessary installation steps occur when passing a whitelist with the `--lib` option.
 
 > [!IMPORTANT]
-> In almost all cases you will want to specify your shell with the `-s|--shell` option, e.g., `--shell bash,zsh`. If you do not specify a shell, **WS-Env** will skip configuring shell runtime configs and would require manual configuration.
+> Some modules do not define _option-specific_ dependencies and require that you include these dependencies when using the `--lib` option.
+>
+> For example, the _zoxide_ module can be installed via `cargo` (default) or via the system package manager, which means the _rust_ module is a soft requirement and not included in the _zoxide_ module's `require.conf`. As such, the _rust_ module must be included in the `--lib` whitelist when installing _zoxide_ via `cargo`.
+>
+> Future versions of **WS-Env** will resolve this issue by improving the `require.conf` syntax.
 
-#### Full install
+### Full Install
 
-> [!NOTE]
-> In most cases it is recommended that you use `--purge` to avoid conflicts with newly installed software. It is also recommended that `--binstall` be passed to avoid dependency issues when building Rust crates.
+In most cases it is recommended that you use `--purge` to ensure the removal of target libraries and avoid pathing and version conflicts. It is also recommended that you pass the `--binstall` option (rust only) to avoid having to build crates which may cause build-dependency issues on some systems.
 
 ```sh
 ./install -s bash --purge --extras --binstall
 ```
 
-#### Full install (no dotfiles)
+### Core Install (no dotfiles)
 
 If you want everything except [Worldshredder's dotfiles](https://github.com/worldshredder/dotfiles), you can exclude it with `-L`:
 
@@ -68,7 +85,7 @@ If you want everything except [Worldshredder's dotfiles](https://github.com/worl
 ./install -s bash -L dotfiles --purge --extras --binstall
 ```
 
-#### Dotfile-centric install
+### Dotfile-Centric Install
 
 > [!NOTE]
 > Most [Worldshredder dotfile modules](https://github.com/worldshredder/dotfiles/tree/main/lib) require a Nerdfont. If you do not already have one installed, it is recommended that you include the `nerdfonts` library and specify your desired font(s) with `--nerdfonts-font`.
@@ -92,7 +109,7 @@ Or if you want a very specific [dotfiles module](https://github.com/WorldShredde
 ./install -l dotfiles,nerdfonts -R dotfiles --dotfiles-lib ps1,nvim --nerdfonts-font jetbrainsmono
 ```
 
-#### Nerdfonts only
+### Nerdfonts Only
 
 You can list available Nerdfonts with `--nerdfonts-list`:
 

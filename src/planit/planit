@@ -1,0 +1,421 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC1090,SC1091,SC2034
+
+PLAN__VERSION='0.5.4a'
+
+PLAN__PATH_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PLAN__PATH_MODULES="${PLAN__PATH_MODULES:-${PLAN__PATH_ROOT}/../modules}"
+PLAN__PATH_CONFIG="${PLAN__PATH_CONFIG:-${PLAN__PATH_ROOT}/../planit.conf}"
+
+while :; do
+    case "$1" in
+        -m | --modules)
+            PLAN__PATH_MODULES="$2"
+            shift
+            ;;
+        -c | --config)
+            if [ ! -f "$2" ]; then
+                printf '\033[31mError: PlanInit: %s' "Invalid config path '$2'"
+                exit 1
+            fi
+            PLAN__PATH_CONFIG="$2"
+            shift
+            ;;
+        --cache)
+            PLAN__PATH_CACHE="$2"
+            shift
+            ;;
+        --vcache)
+            PLAN__PATH_VCACHE="$2"
+            shift
+            ;;
+        --clear-cache)
+            PLAN__CLEAR_CACHE='true'
+            ;;
+        --clear-vcache)
+            PLAN__CLEAR_VCACHE='true'
+            ;;
+        --clear-state)
+            PLAN__CLEAR_STATE='true'
+            ;;
+        -C | --clear-all)
+            PLAN__CLEAR_CACHE='true'
+            PLAN__CLEAR_VCACHE='true'
+            PLAN__CLEAR_STATE='true'
+            ;;
+        --debug-import)
+            __DEBUG_IMPORT__='true'
+            ;;
+        -v | --version)
+            printf '%s\n' "$PLAN__VERSION"
+            exit 0
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *) break ;;
+    esac
+    shift
+done
+
+#
+# Module Environment
+#
+
+export PLAN__PATH_ROOT
+export PLAN__PATH_LOG_OUT
+export PLAN__PATH_LOG_ERR
+export PLAN__PATH_LOG_ALL
+export PLAN__PATH_LOG_MOD
+export PLAN__PATH_CACHE
+export PLAN__PATH_VCACHE
+export PLAN__VCACHE_ROOT_ID
+export PLAN__VCACHE_LOCAL_ID
+export PLAN__PATH_MODULE
+export PLAN__PATH_MODULE_DIR
+export PLAN__MODULE_INDEX
+
+#
+# Core Config
+#
+
+source "${PLAN__PATH_ROOT}/planit.conf"
+[ -f "$PLAN__PATH_CONFIG" ] \
+    && source "$PLAN__PATH_CONFIG"
+if [ ! -d "$PLAN__PATH_MODULES" ]; then
+    printf '\033[31mError: PlanInit: %s' "Invalid modules path '$PLAN__PATH_MODULES'"
+    exit 1
+fi
+source "${PLAN__PATH_ROOT}/lib/utils.sh"
+source "${PLAN__PATH_ROOT}/lib/proc.sh"
+source "${PLAN__PATH_ROOT}/lib/logging.sh"
+
+declare -a PLAN__PID_CACHE
+declare -a PLAN__FILE_CACHE
+
+keep_cache() {
+    local cache_name="$1" persist="$2" code="$3" keep='false'
+    case "${persist^^}" in
+        ALWAYS) keep='true' ;;
+        NEVER) : ;;
+        ONFAIL) [ "$code" != '0' ] && keep='true' ;;
+        *)
+            Plan::log.warn \
+                "'$cache_name' is '$persist'" \
+                "; expected 'always', 'never', or 'onfail'" \
+                " -- defaulting to 'never'"
+            ;;
+    esac
+    printf '%s' "$keep"
+}
+
+exit_handler() {
+    local code="$1"
+    local group="$2"
+
+    local keep_cache keep_vcache
+    keep_cache="$(keep_cache PLAN__KEEP_CACHE "$PLAN__KEEP_CACHE" "$code")"
+    keep_vcache="$(keep_cache PLAN__KEEP_VCACHE "$PLAN__KEEP_VCACHE" "$code")"
+
+    if [ "$keep_cache" != 'true' ] && [ -e "$PLAN__PATH_CACHE" ]; then
+        PLAN__FILE_CACHE+=("$PLAN__PATH_CACHE")
+    fi
+    if [ "$keep_vcache" != 'true' ] && [ -e "$PLAN__PATH_VCACHE" ]; then
+        PLAN__FILE_CACHE+=("$PLAN__PATH_VCACHE")
+    fi
+    Plan::proc.exit \
+        -c "$code" -g "$group" -- -p PLAN__PID_CACHE -f PLAN__FILE_CACHE
+}
+
+Plan::abort() {
+    return 66
+}
+export -f 'Plan::abort'
+
+trap 'exit_handler "$?" "$$"' EXIT
+trap 'printf "\n"; exit_handler 1 "$$"' INT TERM HUP QUIT
+
+#
+# Logging Setup
+#
+
+if [ -n "$PLAN__MODULES_LOG_DIR" ]; then
+    mkdir -p "$PLAN__MODULES_LOG_DIR" || {
+        Plan::log.error "Failed to create path '$PLAN__MODULES_LOG_DIR'"
+        exit 1
+    }
+    PLAN__PATH_LOG="$PLAN__MODULES_LOG_DIR"
+else
+    PLAN__PATH_LOG="$(mktemp -d)"
+fi
+[ "$PLAN__MODULES_LOG_KEEP" != 'true' ] \
+    && PLAN__FILE_CACHE+=("$PLAN__PATH_LOG")
+PLAN__PATH_LOG_OUT="${PLAN__PATH_LOG}/out.log"
+PLAN__PATH_LOG_ERR="${PLAN__PATH_LOG}/err.log"
+PLAN__PATH_LOG_ALL="${PLAN__PATH_LOG}/all.log"
+PLAN__PATH_LOG_MOD="${PLAN__PATH_LOG}/mod.log"
+
+PLAN__PATH_FIFO="${PLAN__PATH_LOG}/fifo"
+PLAN__PATH_FIFO_OUT="${PLAN__PATH_FIFO}/out"
+PLAN__PATH_FIFO_ERR="${PLAN__PATH_FIFO}/err"
+PLAN__FILE_CACHE+=("$PLAN__PATH_FIFO")
+{
+    mkdir "$PLAN__PATH_FIFO" \
+        && mkfifo "$PLAN__PATH_FIFO_OUT" \
+        && mkfifo "$PLAN__PATH_FIFO_ERR"
+} || {
+    Plan::log.error "Failed to create fifo in '$PLAN__PATH_FIFO'"
+    exit 1
+}
+
+#
+# Prepare Modules
+#
+
+source "${PLAN__PATH_ROOT}/lib/monitor.sh"
+source "${PLAN__PATH_ROOT}/lib/modules.sh"
+Plan::modules.fetch "$PLAN__PATH_MODULES" || exit 1
+
+#
+# Installer State
+#
+
+# The module index we must start at based on state
+declare -i restore_idx=0
+
+if [ -z "$PLAN__STATE_ID" ] || [ "$PLAN__STATE_HASH_ID" == 'true' ]; then
+    if ! PLAN__STATE_HASH="$(Plan::modules.generate_state_hash)"; then
+        Plan::log.error 'Failed to generate state hash'
+        exit 1
+    fi
+fi
+readonly PLAN__STATE_HASH PLAN__STATE_ID
+
+if [ "$PLAN__STATE_TRACK" == 'true' ]; then
+    ! [ -d "$PLAN__STATE_DIR" ] \
+        && PLAN__STATE_DIR="${TEMPDIR:-/tmp}"
+
+    readonly PLAN__STATE_DIR
+    readonly PLAN__STATE_NAME="planit.${PLAN__STATE_HASH:-$PLAN__STATE_ID}.state"
+    readonly PLAN__PATH_STATE="${PLAN__STATE_DIR}/$PLAN__STATE_NAME"
+
+    if [ "$PLAN__CLEAR_STATE" = 'true' ]; then
+        Plan::log.debug "Clearing state '$PLAN__STATE_NAME'"
+        rm -rf "$PLAN__PATH_STATE"
+    fi
+
+    if ! [ -e "$PLAN__PATH_STATE" ]; then
+        Plan::modules.save_state "${PLAN__MODULES[0]}" || exit 1
+    else
+        Plan::log.debug "State file found '$PLAN__PATH_STATE'"
+        if ! restore_idx="$(Plan::modules.fetch_state_idx)"; then
+            Plan::log.error "Failed to fetch state from '$PLAN__PATH_STATE'"
+            exit 1
+        elif [ "$restore_idx" -gt '0' ]; then
+            module_idx="$(Plan::modules.fetch_rel_idx \
+                "${PLAN__MODULES[$restore_idx]}")"
+            Plan::log.info "Resume module ${module_idx}/${PLAN__NUM_MODULES}"
+        fi
+    fi
+fi
+
+#
+# Module File Cache
+#
+
+if [ "$PLAN__ENABLE_CACHE" = 'true' ]; then
+    readonly PLAN__CACHE_NAME="planit.${PLAN__STATE_HASH:-$PLAN__STATE_ID}.cache"
+    if [ -z "$PLAN__PATH_CACHE" ]; then
+        PLAN__PATH_CACHE="${TEMPDIR:-/tmp}"
+    fi
+    PLAN__PATH_CACHE+="/${PLAN__CACHE_NAME}"
+    readonly PLAN__PATH_CACHE
+
+    if [ "$PLAN__CLEAR_CACHE" = 'true' ]; then
+        Plan::log.debug "Clearing cache '$PLAN__CACHE_NAME'"
+        rm -rf "$PLAN__PATH_CACHE"
+    fi
+
+    if ! [ -d "$PLAN__PATH_CACHE" ]; then
+        mkdir -p "$PLAN__PATH_CACHE" || {
+            Plan::log.error "Failed to make temp cache '$PLAN__PATH_CACHE'"
+            exit 1
+        }
+    fi
+
+    Plan::log.debug "Temp cache at '$PLAN__PATH_CACHE'"
+fi
+
+#
+# Module Var Cache
+#
+
+if [ "$PLAN__ENABLE_VCACHE" = 'true' ]; then
+    readonly PLAN__VCACHE_NAME="planit.${PLAN__STATE_HASH:-$PLAN__STATE_ID}.vcache"
+    [ -z "$PLAN__PATH_VCACHE" ] \
+        && PLAN__PATH_VCACHE="${TEMPDIR:-/tmp}"
+    PLAN__PATH_VCACHE+="/${PLAN__VCACHE_NAME}"
+    readonly PLAN__PATH_VCACHE
+
+    if [ "$PLAN__CLEAR_VCACHE" = 'true' ]; then
+        Plan::log.debug "Clearing vcache '$PLAN__VCACHE_NAME'"
+        rm -rf "$PLAN__PATH_VCACHE"
+    fi
+
+    if ! [ -d "$PLAN__PATH_VCACHE" ]; then
+        mkdir -p "$PLAN__PATH_VCACHE" || {
+            Plan::log.error "Failed to make vcache '$PLAN__PATH_VCACHE'"
+            exit 1
+        }
+    fi
+
+    Plan::log.debug "vcache at '$PLAN__PATH_VCACHE'"
+
+    for vscope in 'global' 'root' 'local'; do
+        vcache_dir="${PLAN__PATH_VCACHE}/${vscope}.d"
+        if ! [ -d "$vcache_dir" ]; then
+            mkdir "$vcache_dir" || {
+                Plan::log.error "Failed to make '$vscope' vcache: '$vcache_dir'"
+                exit 1
+            }
+        fi
+        export "PLAN__PATH_VCACHE_${vscope^^}=${vcache_dir}"
+        Plan::log.debug "'$vscope' vcache at '$vcache_dir'"
+    done
+
+    source "${PLAN__PATH_ROOT}/lib/vcache.sh"
+    Plan::vcache.update # Initialize scope IDs
+fi
+
+#
+# Execute Modules
+#
+
+source "${PLAN__PATH_ROOT}/lib/report.sh" --component ok,fail,dir
+tput civis # Cursor reset by error handler
+
+for ((i = 0; i < "${#PLAN__MODULES[@]}"; i++)); do
+    member="${PLAN__MODULES[$i]}"
+    module="${member#*|}"
+    depth="${member%%|*}"
+
+    if [ -d "$module" ]; then
+        if [ "$PLAN__STATLOG_SHOW_DIR" == 'true' ]; then
+            Plan::report.dir "$(Plan::modules.format_title "$module")" "$depth" || exit 1
+        fi
+        continue
+    fi
+
+    PLAN__PATH_MODULE="$module"
+    PLAN__PATH_MODULE_DIR="${module%/*}"
+    Plan::log.debug "Module dir is '$PLAN__PATH_MODULE_DIR'"
+    [ "$PLAN__ENABLE_VCACHE" = 'true' ] \
+        && Plan::vcache.update
+
+    # shellcheck disable=SC2324
+    PLAN__MODULE_INDEX+=1
+
+    # Connect listeners to FIFOs only if we're actually going to write
+    skip_save_state='false'
+    if [ "$i" -ge "$restore_idx" ]; then
+        tee -a "$PLAN__PATH_LOG_ALL" > "$PLAN__PATH_LOG_OUT" < "$PLAN__PATH_FIFO_OUT" &
+        PLAN__PID_CACHE+=("$!")
+        tee -a "$PLAN__PATH_LOG_ALL" > "$PLAN__PATH_LOG_ERR" < "$PLAN__PATH_FIFO_ERR" &
+        PLAN__PID_CACHE+=("$!")
+    else
+        skip_save_state='true'
+    fi
+
+    (
+        # Apply Module Config
+
+        config="$(Plan::modules.get_config "$module")" || exit 1
+
+        [ -n "$config" ] \
+            && { source "$config" || exit 1; }
+
+        # Module Logging
+
+        PLAN__STATLOG_TAIL_FROM="${PLAN__STATLOG_TAIL_FROM:-STDALL}"
+        case "${PLAN__STATLOG_TAIL_FROM^^}" in
+            STDMOD) PLAN__PATH_LOG_TAIL="$PLAN__PATH_LOG_MOD" ;;
+            STDOUT) PLAN__PATH_LOG_TAIL="$PLAN__PATH_LOG_OUT" ;;
+            STDERR) PLAN__PATH_LOG_TAIL="$PLAN__PATH_LOG_ERR" ;;
+            STDALL | '') PLAN__PATH_LOG_TAIL="$PLAN__PATH_LOG_ALL" ;;
+            *)
+                Plan::log.error \
+                    "Invalid module log source '$PLAN__STATLOG_TAIL_FROM'"
+                exit 1
+                ;;
+        esac
+
+        printf '' > "$PLAN__PATH_LOG_MOD"
+
+        # Module Title
+
+        if [ -z "$PLAN__MODULE_TITLE" ]; then
+            PLAN__MODULE_TITLE="$(Plan::modules.format_title "$module")"
+            if [ -z "$PLAN__MODULE_TITLE" ]; then
+                if [ "$PLAN__MODULES_ENFORCE_TITLE" == 'true' ]; then
+                    Plan::log.error "Invalid module title '$module'"
+                    exit 1
+                fi
+                PLAN__MODULE_TITLE="$PLAN__MODULES_DEFAULT_TITLE"
+            fi
+        fi
+
+        if [ "$i" -lt "$restore_idx" ]; then
+            Plan::report.ok "$PLAN__MODULE_TITLE" "$depth"
+            exit 0
+        fi
+
+        # Execute Module
+
+        declare -a cmd
+        if [ ! -x "$module" ] || [ -n "$PLAN__MODULE_CMD" ]; then
+            PLAN__MODULE_CMD="${PLAN__MODULE_CMD:-$PLAN__MODULES_DEFAULT_CMD}"
+            [ -n "$PLAN__MODULE_CMD" ] \
+                && Plan::utils.parse_cmd cmd "$PLAN__MODULE_CMD"
+        fi
+
+        # We want logs from load function outside status line
+        Plan::vcache.load 'global'
+        Plan::vcache.load 'root'
+        Plan::vcache.load 'local'
+        (
+            "${cmd[@]}" "$module" "$@"
+        ) 1> "$PLAN__PATH_FIFO_OUT" 2> "$PLAN__PATH_FIFO_ERR" &
+
+        # Monitor Execution
+
+        Plan::monitor.run "$!" "$PLAN__PATH_LOG_TAIL" --depth "$depth"
+        exit_code="$?"
+
+        # Report status
+
+        if ! Plan::utils.ok -i "$PLAN__MODULE_IGNORE_CODES" "$exit_code"; then
+            Plan::report.fail "$PLAN__MODULE_TITLE" "$depth"
+            exit "$exit_code"
+        fi
+
+        Plan::report.ok "$PLAN__MODULE_TITLE" "$depth"
+    )
+
+    exit_code="$?"
+    # see Plan::abort()
+    if [ "$exit_code" = '66' ]; then
+        Plan::log.info 'Aborting'
+        break
+    fi
+    [ "$exit_code" -gt 0 ] \
+        && exit "$exit_code"
+
+    [ "$skip_save_state" != 'true' ] \
+        && Plan::modules.save_state "${PLAN__MODULES[$((i + 1))]}"
+done
+
+# State file not needed anymore
+PLAN__FILE_CACHE+=("$PLAN__PATH_STATE")
+
+exit 0

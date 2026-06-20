@@ -34,7 +34,7 @@
     ./install --shell bash,zsh --extras --purge --binstall
     ```
 
-    For installer and library options, see `--help` or `--help all`:
+    For installer and module options, see `--help` or `--help all`:
 
     ```sh
     ./install --help all
@@ -88,15 +88,15 @@ If you want everything except [Worldshredder's dotfiles](https://github.com/worl
 ### Dotfile-Centric Install
 
 > [!NOTE]
-> Most [Worldshredder dotfile modules](https://github.com/worldshredder/dotfiles/tree/main/lib) require a Nerdfont. If you do not already have one installed, it is recommended that you include the `nerdfonts` library and specify your desired font(s) with `--nerdfonts-font`.
+> Most [Worldshredder dotfile modules](https://github.com/worldshredder/dotfiles/tree/main/lib) require a Nerdfont. If you do not already have one installed, it is recommended that you include the `nerdfonts` module and specify your desired font(s) with `--nerdfonts-font`.
 
-If you only want [Worldshredder's dotfiles](https://github.com/worldshredder/dotfiles) and their dependencies, you can specify the library with `-l|--lib`:
+If you only want [Worldshredder's dotfiles](https://github.com/worldshredder/dotfiles) and their dependencies, you can specify the module with `-l|--lib`:
 
 ```sh
 ./install -s bash -l dotfiles --purge --extras --binstall
 ```
 
-Or if you the dotfiles only, you can exclude the library's dependencies with `-R|--skip-required`:
+Or if you the dotfiles only, you can exclude the module's dependencies with `-R|--skip-required`:
 
 ```sh
 # dotfiles does not have any extras and does not require purging

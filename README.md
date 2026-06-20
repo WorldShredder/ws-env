@@ -40,7 +40,7 @@
     ./install --help all
     ```
 
-    To list available libraries, see `--list`:
+    To list available modules, see `--list`:
 
     ```sh
     ./install --list
@@ -52,7 +52,7 @@
 
 #### Whitelist & Blacklist
 
-You can specify the libraries you want to install with the `-l|--lib` option (whitelist) or you can exclude libraries using the `-L|--exclude` option (blacklist). The latter option overrides module dependencies defined in `require.conf` config files.
+You can specify the modules you want to install with the `-l|--lib` option (whitelist) or you can exclude modules using the `-L|--exclude` option (blacklist). The latter option overrides module dependencies defined in `require.conf` config files.
 
 #### Shell Configuration
 
@@ -71,7 +71,7 @@ You can specify the libraries you want to install with the `-l|--lib` option (wh
 
 ### Full Install
 
-In most cases it is recommended that you use `--purge` to ensure the removal of target libraries and avoid pathing and version conflicts. It is also recommended that you pass the `--binstall` option (rust only) to avoid having to build crates which may cause build-dependency issues on some systems.
+In most cases it is recommended that you use `--purge` to ensure the removal of target modules and avoid pathing and version conflicts. It is also recommended that you pass the `--binstall` option (rust only) to avoid having to build crates which may cause build-dependency issues on some systems.
 
 ```sh
 ./install -s bash --purge --extras --binstall

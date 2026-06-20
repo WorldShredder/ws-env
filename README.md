@@ -88,7 +88,7 @@ If you want everything except [Worldshredder's dotfiles](https://github.com/worl
 ### Dotfile-Centric Install
 
 > [!NOTE]
-> Most [Worldshredder dotfile modules](https://github.com/worldshredder/dotfiles/tree/main/lib) require a Nerdfont. If you do not already have one installed, it is recommended that you include the `nerdfonts` module and specify your desired font(s) with `--nerdfonts-font`.
+> Most [Worldshredder dotfile modules](https://github.com/worldshredder/dotfiles/tree/main/lib) require a Nerdfont. If you do not already have one installed, it is recommended that you include the `nerdfonts` module and specify your desired font(s) with `--nerdfonts-fonts`.
 
 If you only want [Worldshredder's dotfiles](https://github.com/worldshredder/dotfiles) and their dependencies, you can specify the module with `-l|--lib`:
 
@@ -100,13 +100,13 @@ Or if you the dotfiles only, you can exclude the module's dependencies with `-R|
 
 ```sh
 # dotfiles does not have any extras and does not require purging
-./install -l dotfiles,nerdfonts -R dotfiles --nerdfonts-font jetbrainsmono
+./install -l dotfiles,nerdfonts -R dotfiles --nerdfonts-fonts jetbrainsmono
 ```
 
 Or if you want a very specific [dotfiles module](https://github.com/WorldShredder/dotfiles/tree/main/lib), you can specify it with `--dotfiles-lib`:
 
 ```sh
-./install -l dotfiles,nerdfonts -R dotfiles --dotfiles-lib ps1,nvim --nerdfonts-font jetbrainsmono
+./install -l dotfiles,nerdfonts -R dotfiles --dotfiles-lib ps1,nvim --nerdfonts-fonts jetbrainsmono
 ```
 
 ### Nerdfonts Only
@@ -117,8 +117,8 @@ You can list available Nerdfonts with `--nerdfonts-list`:
 ./install -l nerdfonts --nerdfonts-list
 ```
 
-Specify your desired fonts with `--nerdfonts-font` as a comma-separated list:
+Specify your desired fonts with `--nerdfonts-fonts` as a comma-separated list:
 
 ```sh
-./install -l nerdfonts --nerdfonts-font jetbrainsmono,robotomono,mononoki
+./install -l nerdfonts --nerdfonts-fonts jetbrainsmono,robotomono,mononoki
 ```

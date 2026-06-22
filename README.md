@@ -8,7 +8,7 @@
 
 #### System
 
-- Debian 14 _(tested)_
+- Debian 13 _(tested)_
 - Fedora 43 _(tested)_
 
 #### Shells

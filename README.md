@@ -69,6 +69,29 @@ You can specify the modules you want to install with the `-l|--lib` option (whit
 >
 > Future versions of **WS-Env** will resolve this issue by improving the `require.conf` syntax.
 
+#### Version Pinning
+
+All modules provide one or more ways to the installation to a specific version or identifier, such as a git tag. Doing so ensures that repeated installs across multiple instances remain consistent and helps to avoid unexpected buggy software releases.
+
+You can find out which methods are available for a given module by running:
+
+```sh
+./install --help MODULE_NAME
+```
+
+> [!NOTE]
+> Version pinning does not apply to installs using `--pkgman` except for _lua_ on Debian systems.
+
+- #### Github Sourced Modules
+
+    Modules which source from Github will accept either a git _tag_ or _commit sha_ via the `--{MODULE_NAME}-tag` and `--{MODULE_NAME}-commit` options.
+
+    If the module can be installed as a crate, passing the desired version with `--{MODULE}-version` (typically the git _tag_ without the _"v"_ prefix) will instruct `cargo` to install the crate using the binary install feature. This requires _rust_ extras if `binstall` is not already installed on the system.
+
+- #### Non-Github Sourced Modules
+
+    Modules which source directly from the vendor -- such as _golang_, _lua_ and _node_ -- will accept a version associated with either a download link or version manager like [NVM](https://www.nvmnode.com/) via the `--{MODULE_NAME}-version` option.
+
 ### Full Install
 
 In most cases it is recommended that you use `--purge` to ensure the removal of target modules and avoid pathing and version conflicts. It is also recommended that you pass the `--binstall` option (rust only) to avoid having to build crates which may cause build-dependency issues on some systems.

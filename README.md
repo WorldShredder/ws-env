@@ -71,7 +71,7 @@ You can specify the modules you want to install with the `-l|--lib` option (whit
 
 #### Version Pinning
 
-All modules provide one or more ways to the installation to a specific version or identifier, such as a git tag. Doing so ensures that repeated installs across multiple instances remain consistent and helps to avoid unexpected buggy software releases.
+All modules provide one or more ways to pin the installation to a specific version or identifier, such as a git _tag_ or _commit sha_. Doing so ensures that repeated installs across multiple instances remain consistent and helps to avoid unexpected buggy software releases.
 
 You can find out which methods are available for a given module by running:
 
@@ -86,7 +86,7 @@ You can find out which methods are available for a given module by running:
 
     Modules which source from Github will accept either a git _tag_ or _commit sha_ via the `--{MODULE_NAME}-tag` and `--{MODULE_NAME}-commit` options.
 
-    If the module can be installed as a crate, passing the desired version with `--{MODULE}-version` (typically the git _tag_ without the _"v"_ prefix) will instruct `cargo` to install the crate using the binary install feature. This requires _rust_ extras if `binstall` is not already installed on the system.
+    If the module can be installed as a crate, passing the desired version with `--{MODULE}-version` (commonly the git _tag_ without the _"v"_ prefix) will instruct `cargo` to install the crate using the binary install feature. This requires _rust_ extras if `binstall` is not already installed on the system.
 
 - #### Non-Github Sourced Modules
 

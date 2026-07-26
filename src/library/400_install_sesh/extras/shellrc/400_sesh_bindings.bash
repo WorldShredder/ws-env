@@ -19,7 +19,7 @@ __sesh_search() {
                         --bind 'ctrl-t:change-prompt(  )+reload(sesh list -t --icons)' \
                         --bind 'ctrl-g:change-prompt(  )+reload(sesh list -c --icons)' \
                         --bind 'ctrl-x:change-prompt(  )+reload(sesh list -z --icons)' \
-                        --bind 'ctrl-f:change-prompt(  )+reload(fd -H -d 2 -t d -E .Trash . ~)' \
+                        --bind 'ctrl-f:change-prompt(  )+reload(fd -H -d 3 -t d -E .Trash . ~)' \
                         --bind 'ctrl-d:execute(tmux kill-session -t {2..})+change-prompt(  )+reload(sesh list --icons)' \
                         --preview-window 'right:55%' \
                         --preview 'sesh preview {}'
